@@ -1,517 +1,3518 @@
 <!doctype html>
 <html lang="uk">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#1e1f22">
-  <title>Rift Roll — Anime RNG</title>
-  <style>
-    :root {
-      --bg-deep:#1e1f22;
-      --bg-side:#2b2d31;
-      --bg-main:#313338;
-      --bg-card:#2b2d31;
-      --bg-card-hover:#35373c;
-      --bg-input:#1e1f22;
-      --bg-pop:#111214;
-      --border:#202225;
-      --border-soft:#3f4147;
-      --text:#f2f3f5;
-      --normal:#dbdee1;
-      --muted:#949ba4;
-      --faint:#6d6f78;
-      --brand:#5865f2;
-      --brand-hover:#4752c4;
-      --green:#23a55a;
-      --yellow:#f0b232;
-      --red:#f23f42;
-      --shadow:0 12px 34px rgba(0,0,0,.28);
-    }
-    *{box-sizing:border-box}
-    html{color-scheme:dark;background:var(--bg-main);scroll-behavior:smooth}
-    body{margin:0;min-width:320px;min-height:100vh;background:var(--bg-main);color:var(--normal);font:15px/1.45 Inter,"Segoe UI",system-ui,-apple-system,sans-serif;text-rendering:optimizeLegibility}
-    button,input,textarea,select{font:inherit}
-    button{color:inherit}
-    button,input,textarea,select{outline:none}
-    button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid #8b94ff;outline-offset:2px}
-    button:disabled{opacity:.5;cursor:not-allowed}
-    img{display:block;max-width:100%}
-    ::selection{background:rgba(88,101,242,.5);color:#fff}
-    ::-webkit-scrollbar{width:12px;height:12px}
-    ::-webkit-scrollbar-track{background:var(--bg-main)}
-    ::-webkit-scrollbar-thumb{border:3px solid var(--bg-main);border-radius:8px;background:#191a1d}
-    [hidden]{display:none!important}
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#1e1f22" />
+    <title>Rift Roll — Anime RNG</title>
+    <style>
+      :root {
+        --bg-deep: #1e1f22;
+        --bg-side: #2b2d31;
+        --bg-main: #313338;
+        --bg-card: #2b2d31;
+        --bg-card-hover: #35373c;
+        --bg-input: #1e1f22;
+        --bg-pop: #111214;
+        --border: #202225;
+        --border-soft: #3f4147;
+        --text: #f2f3f5;
+        --normal: #dbdee1;
+        --muted: #949ba4;
+        --faint: #6d6f78;
+        --brand: #5865f2;
+        --brand-hover: #4752c4;
+        --green: #23a55a;
+        --yellow: #f0b232;
+        --red: #f23f42;
+        --shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        color-scheme: dark;
+        background: var(--bg-main);
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100vh;
+        background: var(--bg-main);
+        color: var(--normal);
+        font:
+          15px/1.45 Inter,
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        text-rendering: optimizeLegibility;
+      }
+      button,
+      input,
+      textarea,
+      select {
+        font: inherit;
+      }
+      button {
+        color: inherit;
+      }
+      button,
+      input,
+      textarea,
+      select {
+        outline: none;
+      }
+      button:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible,
+      select:focus-visible {
+        outline: 2px solid #8b94ff;
+        outline-offset: 2px;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      img {
+        display: block;
+        max-width: 100%;
+      }
+      ::selection {
+        background: rgba(88, 101, 242, 0.5);
+        color: #fff;
+      }
+      ::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg-main);
+      }
+      ::-webkit-scrollbar-thumb {
+        border: 3px solid var(--bg-main);
+        border-radius: 8px;
+        background: #191a1d;
+      }
+      [hidden] {
+        display: none !important;
+      }
 
-    .auth-shell{min-height:100vh;display:grid;place-items:center;padding:28px;background:#232428}
-    .auth-wrap{width:min(920px,100%);display:grid;grid-template-columns:1.05fr .95fr;overflow:hidden;border:1px solid #17181a;border-radius:12px;background:var(--bg-card);box-shadow:0 24px 70px rgba(0,0,0,.42)}
-    .auth-intro{min-height:570px;padding:48px;display:flex;flex-direction:column;justify-content:space-between;background:#25272b;border-right:1px solid var(--border)}
-    .auth-brand{display:flex;align-items:center;gap:12px;color:var(--text);font-size:18px;font-weight:800}
-    .auth-logo,.brand-mark{display:grid;place-items:center;background:var(--brand);color:white;font-weight:900}
-    .auth-logo{width:42px;height:42px;border-radius:12px}
-    .auth-copy h1{max-width:420px;margin:0 0 16px;color:var(--text);font-size:42px;line-height:1.04;letter-spacing:-.04em}
-    .auth-copy p{max-width:410px;margin:0;color:var(--muted);font-size:16px}
-    .auth-note{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:13px}
-    .auth-note i{width:9px;height:9px;border-radius:50%;background:var(--green)}
-    .auth-panel{padding:46px 40px;display:flex;flex-direction:column;justify-content:center}
-    .auth-panel h2{margin:0;color:var(--text);font-size:24px}
-    .auth-panel>p{margin:7px 0 24px;color:var(--muted)}
-    .auth-tabs{display:flex;gap:4px;margin-bottom:22px;padding:4px;background:var(--bg-input);border-radius:7px}
-    .auth-tabs button{flex:1;height:36px;border:0;border-radius:4px;background:transparent;color:var(--muted);font-weight:650;cursor:pointer}
-    .auth-tabs button.active{background:#3b3d43;color:var(--text)}
-    .form-stack{display:grid;gap:15px}
-    .field{display:grid;gap:7px}
-    .field>span,.field-label{color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
-    .field input,.field textarea,.field select,.toolbar-input{width:100%;border:1px solid transparent;border-radius:4px;background:var(--bg-input);color:var(--text);padding:10px 11px}
-    .field textarea{resize:vertical;min-height:84px}
-    .field input:focus,.field textarea:focus,.field select:focus,.toolbar-input:focus{border-color:var(--brand)}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .submit-button,.primary,.roll-button{border:0;background:var(--brand);color:#fff;font-weight:750;cursor:pointer;transition:background .15s,transform .08s}
-    .submit-button:hover,.primary:hover,.roll-button:hover{background:var(--brand-hover)}
-    .submit-button:active,.primary:active,.roll-button:active{transform:translateY(1px) scale(.985)}
-    .submit-button{height:44px;border-radius:4px;margin-top:4px}
-    .auth-error{min-height:20px;margin:12px 0 0;color:#ff8d8f;font-size:13px}
+      .auth-shell {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 28px;
+        background: #232428;
+      }
+      .auth-wrap {
+        width: min(920px, 100%);
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        overflow: hidden;
+        border: 1px solid #17181a;
+        border-radius: 12px;
+        background: var(--bg-card);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+      }
+      .auth-intro {
+        min-height: 570px;
+        padding: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: #25272b;
+        border-right: 1px solid var(--border);
+      }
+      .auth-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--text);
+        font-size: 18px;
+        font-weight: 800;
+      }
+      .auth-logo,
+      .brand-mark {
+        display: grid;
+        place-items: center;
+        background: var(--brand);
+        color: white;
+        font-weight: 900;
+      }
+      .auth-logo {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+      }
+      .auth-copy h1 {
+        max-width: 420px;
+        margin: 0 0 16px;
+        color: var(--text);
+        font-size: 42px;
+        line-height: 1.04;
+        letter-spacing: -0.04em;
+      }
+      .auth-copy p {
+        max-width: 410px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+      }
+      .auth-note {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .auth-note i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--green);
+      }
+      .auth-panel {
+        padding: 46px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .auth-panel h2 {
+        margin: 0;
+        color: var(--text);
+        font-size: 24px;
+      }
+      .auth-panel > p {
+        margin: 7px 0 24px;
+        color: var(--muted);
+      }
+      .auth-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 22px;
+        padding: 4px;
+        background: var(--bg-input);
+        border-radius: 7px;
+      }
+      .auth-tabs button {
+        flex: 1;
+        height: 36px;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--muted);
+        font-weight: 650;
+        cursor: pointer;
+      }
+      .auth-tabs button.active {
+        background: #3b3d43;
+        color: var(--text);
+      }
+      .form-stack {
+        display: grid;
+        gap: 15px;
+      }
+      .field {
+        display: grid;
+        gap: 7px;
+      }
+      .field > span,
+      .field-label {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .field input,
+      .field textarea,
+      .field select,
+      .toolbar-input {
+        width: 100%;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        background: var(--bg-input);
+        color: var(--text);
+        padding: 10px 11px;
+      }
+      .field textarea {
+        resize: vertical;
+        min-height: 84px;
+      }
+      .field input:focus,
+      .field textarea:focus,
+      .field select:focus,
+      .toolbar-input:focus {
+        border-color: var(--brand);
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .submit-button,
+      .primary,
+      .roll-button {
+        border: 0;
+        background: var(--brand);
+        color: #fff;
+        font-weight: 750;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          transform 0.08s;
+      }
+      .submit-button:hover,
+      .primary:hover,
+      .roll-button:hover {
+        background: var(--brand-hover);
+      }
+      .submit-button:active,
+      .primary:active,
+      .roll-button:active {
+        transform: translateY(1px) scale(0.985);
+      }
+      .submit-button {
+        height: 44px;
+        border-radius: 4px;
+        margin-top: 4px;
+      }
+      .auth-error {
+        min-height: 20px;
+        margin: 12px 0 0;
+        color: #ff8d8f;
+        font-size: 13px;
+      }
 
-    .app-shell{min-height:100vh;display:grid;grid-template-columns:236px minmax(0,1fr);grid-template-rows:48px minmax(0,1fr)}
-    .topbar{position:sticky;top:0;z-index:50;grid-column:1/-1;height:48px;display:flex;align-items:center;background:var(--bg-deep);border-bottom:1px solid #191a1d;box-shadow:0 1px 0 rgba(0,0,0,.2)}
-    .brand-button{width:236px;height:48px;display:flex;align-items:center;gap:10px;padding:0 14px;border:0;border-right:1px solid #191a1d;background:transparent;cursor:pointer}
-    .brand-button:hover{background:rgba(255,255,255,.035)}
-    .brand-mark{width:28px;height:28px;border-radius:8px;font-size:14px}
-    .brand-button strong{color:var(--text);font-size:14px}
-    .brand-button span:last-child{color:var(--muted);font-weight:650}
-    .live-chip{min-width:0;height:32px;display:flex;align-items:center;gap:7px;margin-left:12px;padding:0 10px;border:0;border-radius:4px;background:transparent;color:var(--muted);cursor:pointer}
-    .live-chip:hover{background:rgba(255,255,255,.055);color:var(--normal)}
-    .live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:none}
-    .live-chip strong{color:var(--text);font-size:12px}
-    .live-chip span:last-child{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .topbar-right{margin-left:auto;display:flex;align-items:center;gap:6px;padding-right:10px}
-    .currency{height:30px;display:flex;align-items:center;gap:6px;padding:0 8px;color:var(--normal);font-size:13px;font-weight:650}
-    .currency i{color:var(--yellow);font-style:normal}
-    .profile-chip{height:38px;display:flex;align-items:center;gap:8px;padding:4px 7px;border:0;border-radius:4px;background:transparent;cursor:pointer;text-align:left}
-    .profile-chip:hover{background:rgba(255,255,255,.05)}
-    .avatar{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:var(--green);color:#fff;font-weight:800;flex:none}
-    .profile-chip-copy{display:grid;line-height:1.08}
-    .profile-chip-copy strong{max-width:125px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-size:13px}
-    .profile-chip-copy small{margin-top:3px;color:var(--muted);font-size:10px}
+      .app-shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 236px minmax(0, 1fr);
+        grid-template-rows: 48px minmax(0, 1fr);
+      }
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        grid-column: 1/-1;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        background: var(--bg-deep);
+        border-bottom: 1px solid #191a1d;
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+      }
+      .brand-button {
+        width: 236px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 14px;
+        border: 0;
+        border-right: 1px solid #191a1d;
+        background: transparent;
+        cursor: pointer;
+      }
+      .brand-button:hover {
+        background: rgba(255, 255, 255, 0.035);
+      }
+      .brand-mark {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        font-size: 14px;
+      }
+      .brand-button strong {
+        color: var(--text);
+        font-size: 14px;
+      }
+      .brand-button span:last-child {
+        color: var(--muted);
+        font-weight: 650;
+      }
+      .live-chip {
+        min-width: 0;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-left: 12px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .live-chip:hover {
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--normal);
+      }
+      .live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        flex: none;
+      }
+      .live-chip strong {
+        color: var(--text);
+        font-size: 12px;
+      }
+      .live-chip span:last-child {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .topbar-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding-right: 10px;
+      }
+      .currency {
+        height: 30px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 8px;
+        color: var(--normal);
+        font-size: 13px;
+        font-weight: 650;
+      }
+      .currency i {
+        color: var(--yellow);
+        font-style: normal;
+      }
+      .profile-chip {
+        height: 38px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 7px;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        cursor: pointer;
+        text-align: left;
+      }
+      .profile-chip:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .avatar {
+        width: 30px;
+        height: 30px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--green);
+        color: #fff;
+        font-weight: 800;
+        flex: none;
+        overflow: hidden;
+      }
+      .profile-chip-copy {
+        display: grid;
+        line-height: 1.08;
+      }
+      .profile-chip-copy strong {
+        max-width: 125px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--text);
+        font-size: 13px;
+      }
+      .profile-chip-copy small {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 10px;
+      }
 
-    .sidebar{position:sticky;top:48px;grid-column:1;grid-row:2;height:calc(100vh - 48px);display:flex;flex-direction:column;padding:14px 8px 10px;overflow-y:auto;background:var(--bg-side)}
-    .nav{display:grid;gap:2px}
-    .nav-button{height:40px;display:flex;align-items:center;gap:11px;padding:0 11px;border:0;border-radius:4px;background:transparent;color:var(--muted);font-weight:600;cursor:pointer;text-align:left}
-    .nav-button:hover{background:rgba(255,255,255,.055);color:var(--normal)}
-    .nav-button.active{background:rgba(255,255,255,.095);color:var(--text)}
-    .nav-icon{width:22px;color:inherit;font-size:18px;text-align:center}
-    .nav-separator{height:1px;margin:12px 8px;background:#202225}
-    .sidebar-foot{margin-top:auto;padding:11px;border-top:1px solid var(--border)}
-    .sidebar-stat{display:flex;justify-content:space-between;gap:10px;margin:6px 0;color:var(--muted);font-size:12px}
-    .sidebar-stat b{color:var(--normal)}
+      .sidebar {
+        position: sticky;
+        top: 48px;
+        grid-column: 1;
+        grid-row: 2;
+        height: calc(100vh - 48px);
+        display: flex;
+        flex-direction: column;
+        padding: 14px 8px 10px;
+        overflow-y: auto;
+        background: var(--bg-side);
+      }
+      .nav {
+        display: grid;
+        gap: 2px;
+      }
+      .nav-button {
+        height: 40px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 0 11px;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--muted);
+        font-weight: 600;
+        cursor: pointer;
+        text-align: left;
+      }
+      .nav-button:hover {
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--normal);
+      }
+      .nav-button.active {
+        background: rgba(255, 255, 255, 0.095);
+        color: var(--text);
+      }
+      .nav-icon {
+        width: 22px;
+        color: inherit;
+        font-size: 18px;
+        text-align: center;
+      }
+      .nav-separator {
+        height: 1px;
+        margin: 12px 8px;
+        background: #202225;
+      }
+      .sidebar-foot {
+        margin-top: auto;
+        padding: 11px;
+        border-top: 1px solid var(--border);
+      }
+      .sidebar-stat {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 6px 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .sidebar-stat b {
+        color: var(--normal);
+      }
 
-    .main{grid-column:2;grid-row:2;min-width:0;min-height:calc(100vh - 48px);padding:28px 30px 110px;background:var(--bg-main)}
-    .page{width:min(1220px,100%);margin:0 auto}
-    .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:22px}
-    .eyebrow{display:block;margin-bottom:5px;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
-    .page-head h1,.section-head h2{margin:0;color:var(--text);letter-spacing:-.025em}
-    .page-head h1{font-size:27px}
-    .page-head p{margin:6px 0 0;color:var(--muted)}
-    .page-actions{display:flex;gap:8px;flex-wrap:wrap}
-    .primary,.ghost,.danger,.small-button{min-height:36px;padding:0 13px;border-radius:4px;font-weight:650;cursor:pointer}
-    .primary{border:0;background:var(--brand);color:white}
-    .ghost,.small-button{border:0;background:#3b3d43;color:var(--normal)}
-    .ghost:hover,.small-button:hover{background:#45474e;color:var(--text)}
-    .danger{border:0;background:rgba(242,63,66,.13);color:#ff9b9d}
-    .danger:hover{background:rgba(242,63,66,.22)}
-    .text-button{padding:0;border:0;background:none;color:#aeb4ff;cursor:pointer}
-    .text-button:hover{text-decoration:underline}
-    .panel{border:1px solid var(--border);border-radius:8px;background:var(--bg-card)}
-    .section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:13px}
-    .section-head h2{font-size:18px}
-    .section-head p{margin:3px 0 0;color:var(--muted);font-size:13px}
+      .main {
+        grid-column: 2;
+        grid-row: 2;
+        min-width: 0;
+        min-height: calc(100vh - 48px);
+        padding: 28px 30px 110px;
+        background: var(--bg-main);
+      }
+      .page {
+        width: min(1220px, 100%);
+        margin: 0 auto;
+      }
+      .page-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 22px;
+      }
+      .eyebrow {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .page-head h1,
+      .section-head h2 {
+        margin: 0;
+        color: var(--text);
+        letter-spacing: -0.025em;
+      }
+      .page-head h1 {
+        font-size: 27px;
+      }
+      .page-head p {
+        margin: 6px 0 0;
+        color: var(--muted);
+      }
+      .page-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .primary,
+      .ghost,
+      .danger,
+      .small-button {
+        min-height: 36px;
+        padding: 0 13px;
+        border-radius: 4px;
+        font-weight: 650;
+        cursor: pointer;
+      }
+      .primary {
+        border: 0;
+        background: var(--brand);
+        color: white;
+      }
+      .ghost,
+      .small-button {
+        border: 0;
+        background: #3b3d43;
+        color: var(--normal);
+      }
+      .ghost:hover,
+      .small-button:hover {
+        background: #45474e;
+        color: var(--text);
+      }
+      .danger {
+        border: 0;
+        background: rgba(242, 63, 66, 0.13);
+        color: #ff9b9d;
+      }
+      .danger:hover {
+        background: rgba(242, 63, 66, 0.22);
+      }
+      .text-button {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: #aeb4ff;
+        cursor: pointer;
+      }
+      .text-button:hover {
+        text-decoration: underline;
+      }
+      .panel {
+        border: 1px solid #232428;
+        border-radius: 9px;
+        background: var(--bg-card);
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.025);
+      }
+      .section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 13px;
+      }
+      .section-head h2 {
+        font-size: 18px;
+      }
+      .section-head p {
+        margin: 3px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
 
-    .home-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:16px}
-    .hero-panel{min-height:340px;display:grid;grid-template-columns:1.1fr .9fr;overflow:hidden}
-    .hero-copy{padding:30px;display:flex;flex-direction:column;justify-content:center}
-    .hero-copy h2{max-width:520px;margin:0 0 10px;color:var(--text);font-size:31px;line-height:1.08;letter-spacing:-.035em}
-    .hero-copy p{max-width:520px;margin:0 0 23px;color:var(--muted);font-size:15px}
-    .hero-actions{display:flex;gap:9px;flex-wrap:wrap}
-    .hero-art{position:relative;min-height:300px;display:grid;place-items:center;overflow:hidden;background:#25262a;border-left:1px solid var(--border)}
-    .rift-disk{width:190px;height:190px;border:34px solid #383b45;border-radius:50%;box-shadow:inset 0 0 0 2px #1e1f22,0 0 0 1px #454852;position:relative}
-    .rift-disk:before{content:"";position:absolute;inset:27px;border-radius:50%;background:var(--brand);opacity:.82}
-    .rift-disk:after{content:"R";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:48px;font-weight:900}
-    .hero-badge{position:absolute;bottom:24px;left:24px;right:24px;padding:11px 13px;border-radius:5px;background:rgba(17,18,20,.87);color:var(--normal);font-size:12px}
-    .hero-badge b{display:block;color:var(--text);font-size:13px}
-    .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-    .stat-card{min-height:105px;padding:17px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card)}
-    .stat-card span{display:block;color:var(--muted);font-size:12px}
-    .stat-card strong{display:block;margin-top:7px;color:var(--text);font-size:22px;letter-spacing:-.03em}
-    .stat-card small{display:block;margin-top:3px;color:var(--faint)}
-    .wide-section{margin-top:22px}
+      .home-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+        gap: 16px;
+      }
+      .hero-panel {
+        min-height: 340px;
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        overflow: hidden;
+      }
+      .hero-copy {
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .hero-copy h2 {
+        max-width: 520px;
+        margin: 0 0 10px;
+        color: var(--text);
+        font-size: 31px;
+        line-height: 1.08;
+        letter-spacing: -0.035em;
+      }
+      .hero-copy p {
+        max-width: 520px;
+        margin: 0 0 23px;
+        color: var(--muted);
+        font-size: 15px;
+      }
+      .hero-actions {
+        display: flex;
+        gap: 9px;
+        flex-wrap: wrap;
+      }
+      .hero-art {
+        position: relative;
+        min-height: 300px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: #25262a;
+        border-left: 1px solid var(--border);
+      }
+      .rift-disk {
+        width: 190px;
+        height: 190px;
+        border: 34px solid #383b45;
+        border-radius: 50%;
+        box-shadow:
+          inset 0 0 0 2px #1e1f22,
+          0 0 0 1px #454852;
+        position: relative;
+      }
+      .rift-disk:before {
+        content: "";
+        position: absolute;
+        inset: 27px;
+        border-radius: 50%;
+        background: var(--brand);
+        opacity: 0.82;
+      }
+      .rift-disk:after {
+        content: "R";
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-size: 48px;
+        font-weight: 900;
+      }
+      .hero-badge {
+        position: absolute;
+        bottom: 24px;
+        left: 24px;
+        right: 24px;
+        padding: 11px 13px;
+        border-radius: 5px;
+        background: rgba(17, 18, 20, 0.87);
+        color: var(--normal);
+        font-size: 12px;
+      }
+      .hero-badge b {
+        display: block;
+        color: var(--text);
+        font-size: 13px;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .stat-card {
+        min-height: 105px;
+        padding: 17px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg-card);
+      }
+      .stat-card span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .stat-card strong {
+        display: block;
+        margin-top: 7px;
+        color: var(--text);
+        font-size: 22px;
+        letter-spacing: -0.03em;
+      }
+      .stat-card small {
+        display: block;
+        margin-top: 3px;
+        color: var(--faint);
+      }
+      .wide-section {
+        margin-top: 22px;
+      }
 
-    .hour-card{margin-top:16px;padding:18px;display:grid;grid-template-columns:86px minmax(0,1fr) auto;align-items:center;gap:16px}
-    .hour-art{width:86px;height:86px;border:2px solid var(--rarity,#949ba4);border-radius:7px;overflow:hidden;background:#202225}
-    .hour-copy small{color:var(--muted)}
-    .hour-copy h3{margin:4px 0 3px;color:var(--text);font-size:18px}
-    .hour-copy p{margin:0;color:var(--muted)}
-    .hour-copy b{color:var(--rarity,#fff)}
-    .hour-odds{text-align:right}
-    .hour-odds strong{display:block;color:var(--text);font-size:20px}
-    .hour-odds span{color:var(--muted);font-size:12px}
+      .hour-card {
+        margin-top: 16px;
+        padding: 18px;
+        display: grid;
+        grid-template-columns: 86px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 16px;
+      }
+      .hour-art {
+        width: 86px;
+        height: 86px;
+        border: 2px solid var(--rarity, #949ba4);
+        border-radius: 7px;
+        overflow: hidden;
+        background: #202225;
+      }
+      .hour-copy small {
+        color: var(--muted);
+      }
+      .hour-copy h3 {
+        margin: 4px 0 3px;
+        color: var(--text);
+        font-size: 18px;
+      }
+      .hour-copy p {
+        margin: 0;
+        color: var(--muted);
+      }
+      .hour-copy b {
+        color: var(--rarity, #fff);
+      }
+      .hour-odds {
+        text-align: right;
+      }
+      .hour-odds strong {
+        display: block;
+        color: var(--text);
+        font-size: 20px;
+      }
+      .hour-odds span {
+        color: var(--muted);
+        font-size: 12px;
+      }
 
-    .card-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-    .game-card{position:relative;min-width:0;overflow:hidden;border:1px solid var(--border);border-top:3px solid var(--rarity,#949ba4);border-radius:7px;background:var(--bg-card);transition:transform .14s,background .14s}
-    .game-card:hover{transform:translateY(-2px);background:var(--bg-card-hover)}
-    .game-card.locked .card-art{filter:grayscale(1);opacity:.36}
-    .game-card.locked .card-body{opacity:.62}
-    .card-art{position:relative;aspect-ratio:4/3;overflow:hidden;background:#202225}
-    .card-art img{position:relative;z-index:1;width:100%;height:100%;object-fit:cover}
-    .hour-art>.card-art,.history-thumb>.card-art,.picker-thumb>.card-art,.slot-art>.card-art{width:100%;height:100%;aspect-ratio:auto}
-    .art-fallback{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden;background:linear-gradient(145deg,#25272c,#1f2023)}
-    .art-fallback:before{content:"";width:70%;aspect-ratio:1;border:24px solid color-mix(in srgb,var(--rarity,#5865f2) 28%,transparent);border-radius:50%;transform:rotate(-18deg)}
-    .art-fallback b{position:absolute;color:var(--rarity,#fff);font-size:42px;letter-spacing:-.08em;opacity:.9}
-    .art-fallback small{position:absolute;bottom:12px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.16em}
-    .card-badge{position:absolute;top:9px;left:9px;padding:3px 6px;border-radius:3px;background:rgba(17,18,20,.84);color:#fff;font-size:10px;font-weight:800}
-    .owned-badge{position:absolute;right:9px;top:9px;padding:3px 7px;border-radius:10px;background:rgba(17,18,20,.88);color:#fff;font-size:11px;font-weight:750}
-    .card-body{padding:12px}
-    .rarity-row{display:flex;align-items:center;gap:6px;color:var(--rarity,#949ba4);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
-    .rarity-row i{width:7px;height:7px;border-radius:50%;background:var(--rarity,#949ba4)}
-    .rarity-row span:last-child{margin-left:auto;color:var(--muted);letter-spacing:0;text-transform:none}
-    .card-body h3{margin:6px 0 2px;overflow:hidden;color:var(--text);font-size:15px;white-space:nowrap;text-overflow:ellipsis}
-    .card-body p{height:37px;margin:0;color:var(--muted);font-size:12px;overflow:hidden}
-    .card-meta{display:flex;justify-content:space-between;gap:8px;margin-top:10px;padding-top:9px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
-    .card-meta b{color:var(--normal)}
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .game-card {
+        position: relative;
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-top: 3px solid var(--rarity, #949ba4);
+        border-radius: 7px;
+        background: var(--bg-card);
+        transition:
+          transform 0.14s,
+          background 0.14s;
+      }
+      .game-card:hover {
+        transform: translateY(-2px);
+        background: var(--bg-card-hover);
+      }
+      .game-card.locked .card-art {
+        filter: grayscale(1);
+        opacity: 0.36;
+      }
+      .game-card.locked .card-body {
+        opacity: 0.62;
+      }
+      .card-art {
+        position: relative;
+        aspect-ratio: 4/3;
+        overflow: hidden;
+        background: #202225;
+      }
+      .card-art img {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .hour-art > .card-art,
+      .history-thumb > .card-art,
+      .picker-thumb > .card-art,
+      .slot-art > .card-art {
+        width: 100%;
+        height: 100%;
+        aspect-ratio: auto;
+      }
+      .art-fallback {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: linear-gradient(145deg, #25272c, #1f2023);
+      }
+      .art-fallback:before {
+        content: "";
+        width: 70%;
+        aspect-ratio: 1;
+        border: 24px solid
+          color-mix(in srgb, var(--rarity, #5865f2) 28%, transparent);
+        border-radius: 50%;
+        transform: rotate(-18deg);
+      }
+      .art-fallback b {
+        position: absolute;
+        color: var(--rarity, #fff);
+        font-size: 42px;
+        letter-spacing: -0.08em;
+        opacity: 0.9;
+      }
+      .art-fallback small {
+        position: absolute;
+        bottom: 12px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+      }
+      .card-badge {
+        position: absolute;
+        top: 9px;
+        left: 9px;
+        padding: 3px 6px;
+        border-radius: 3px;
+        background: rgba(17, 18, 20, 0.84);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 800;
+      }
+      .owned-badge {
+        position: absolute;
+        right: 9px;
+        top: 9px;
+        padding: 3px 7px;
+        border-radius: 10px;
+        background: rgba(17, 18, 20, 0.88);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 750;
+      }
+      .card-body {
+        padding: 12px;
+      }
+      .rarity-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--rarity, #949ba4);
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .rarity-row i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--rarity, #949ba4);
+      }
+      .rarity-row span:last-child {
+        margin-left: auto;
+        color: var(--muted);
+        letter-spacing: 0;
+        text-transform: none;
+      }
+      .card-body h3 {
+        margin: 6px 0 2px;
+        overflow: hidden;
+        color: var(--text);
+        font-size: 15px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .card-body p {
+        height: 37px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        overflow: hidden;
+      }
+      .card-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 10px;
+        padding-top: 9px;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .card-meta b {
+        color: var(--normal);
+      }
 
-    .roll-layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:16px}
-    .roll-stage{min-height:585px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;overflow:hidden;position:relative}
-    .roll-stage:before{content:"";position:absolute;width:420px;height:420px;border:1px solid #3b3d43;border-radius:50%;opacity:.45}
-    .roll-stage:after{content:"";position:absolute;width:270px;height:270px;border:1px dashed #474a53;border-radius:50%;opacity:.6}
-    .roll-core{position:relative;z-index:1;width:170px;height:170px;display:grid;place-items:center;border:1px solid #4a4d55;border-radius:14px;background:#25272b;box-shadow:var(--shadow)}
-    .roll-core span{width:84px;height:84px;display:grid;place-items:center;border-radius:50%;background:var(--brand);color:#fff;font-size:36px;font-weight:900}
-    .roll-copy{position:relative;z-index:1;margin:24px 0 18px;text-align:center}
-    .roll-copy h2{margin:0;color:var(--text);font-size:24px}
-    .roll-copy p{margin:5px 0 0;color:var(--muted)}
-    .roll-button{position:relative;z-index:1;min-width:230px;height:58px;border-radius:5px;font-size:17px;letter-spacing:.02em}
-    .roll-result{position:relative;z-index:3;width:min(330px,90%);animation:reveal .38s ease-out both}
-    .roll-result .game-card{box-shadow:0 20px 45px rgba(0,0,0,.38)}
-    .result-note{text-align:center;margin-top:13px;color:var(--muted);font-size:12px}
-    .result-note b{color:var(--text)}
-    .roll-stage.rolling .roll-core{animation:charge .85s ease-in-out infinite}
-    .roll-stage.rolling .roll-core span{animation:shake .16s linear infinite}
-    .roll-stage.rolling .roll-copy h2:after{content:"...";animation:dots 1s steps(4,end) infinite}
-    @keyframes charge{50%{transform:scale(1.05);border-color:#7278d8}}
-    @keyframes shake{25%{transform:translateX(3px) rotate(2deg)}75%{transform:translateX(-3px) rotate(-2deg)}}
-    @keyframes reveal{from{opacity:0;transform:translateY(12px) scale(.94)}to{opacity:1;transform:none}}
-    @keyframes dots{0%{opacity:.1}100%{opacity:1}}
-    .roll-side{display:grid;gap:12px;align-content:start}
-    .side-panel{padding:16px}
-    .side-panel h3{margin:0 0 12px;color:var(--text);font-size:14px}
-    .side-list{display:grid;gap:8px}
-    .history-row{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:9px;padding:7px;border-radius:5px;background:#25272b}
-    .history-thumb{width:38px;height:38px;position:relative;overflow:hidden;border-radius:4px;background:#202225}
-    .history-row strong{display:block;overflow:hidden;color:var(--normal);font-size:12px;white-space:nowrap;text-overflow:ellipsis}
-    .history-row small{color:var(--muted);font-size:10px}
-    .history-row>span:last-child{color:var(--muted);font-size:10px}
+      .roll-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 310px;
+        gap: 16px;
+      }
+      .roll-stage {
+        min-height: 585px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 30px;
+        overflow: hidden;
+        position: relative;
+      }
+      .roll-stage:before {
+        content: "";
+        position: absolute;
+        width: 420px;
+        height: 420px;
+        border: 1px solid #3b3d43;
+        border-radius: 50%;
+        opacity: 0.45;
+      }
+      .roll-stage:after {
+        content: "";
+        position: absolute;
+        width: 270px;
+        height: 270px;
+        border: 1px dashed #474a53;
+        border-radius: 50%;
+        opacity: 0.6;
+      }
+      .roll-core {
+        position: relative;
+        z-index: 1;
+        width: 170px;
+        height: 170px;
+        display: grid;
+        place-items: center;
+        border: 1px solid #4a4d55;
+        border-radius: 14px;
+        background: #25272b;
+        box-shadow: var(--shadow);
+      }
+      .roll-core span {
+        width: 84px;
+        height: 84px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--brand);
+        color: #fff;
+        font-size: 36px;
+        font-weight: 900;
+      }
+      .roll-copy {
+        position: relative;
+        z-index: 1;
+        margin: 24px 0 18px;
+        text-align: center;
+      }
+      .roll-copy h2 {
+        margin: 0;
+        color: var(--text);
+        font-size: 24px;
+      }
+      .roll-copy p {
+        margin: 5px 0 0;
+        color: var(--muted);
+      }
+      .roll-button {
+        position: relative;
+        z-index: 1;
+        min-width: 230px;
+        height: 58px;
+        border-radius: 5px;
+        font-size: 17px;
+        letter-spacing: 0.02em;
+      }
+      .roll-result {
+        position: relative;
+        z-index: 3;
+        width: min(330px, 90%);
+        animation: reveal 0.38s ease-out both;
+      }
+      .roll-result .game-card {
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.38);
+      }
+      .result-note {
+        text-align: center;
+        margin-top: 13px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .result-note b {
+        color: var(--text);
+      }
+      .roll-stage.rolling .roll-core {
+        animation: charge 0.85s ease-in-out infinite;
+      }
+      .roll-stage.rolling .roll-core span {
+        animation: shake 0.16s linear infinite;
+      }
+      .roll-stage.rolling .roll-copy h2:after {
+        content: "...";
+        animation: dots 1s steps(4, end) infinite;
+      }
+      @keyframes charge {
+        50% {
+          transform: scale(1.05);
+          border-color: #7278d8;
+        }
+      }
+      @keyframes shake {
+        25% {
+          transform: translateX(3px) rotate(2deg);
+        }
+        75% {
+          transform: translateX(-3px) rotate(-2deg);
+        }
+      }
+      @keyframes reveal {
+        from {
+          opacity: 0;
+          transform: translateY(12px) scale(0.94);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @keyframes dots {
+        0% {
+          opacity: 0.1;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+      .dice-scene {
+        --die-size: 112px;
+        position: relative;
+        z-index: 2;
+        width: 180px;
+        height: 180px;
+        display: grid;
+        place-items: center;
+        perspective: 760px;
+        filter: drop-shadow(0 22px 18px rgba(0, 0, 0, 0.34));
+      }
+      .dice-scene.compact {
+        --die-size: 76px;
+        width: 118px;
+        height: 118px;
+      }
+      .dice-cube {
+        width: var(--die-size);
+        height: var(--die-size);
+        position: relative;
+        transform-style: preserve-3d;
+        transform: rotateX(-18deg) rotateY(32deg);
+        animation: dice-idle 5s ease-in-out infinite;
+      }
+      .dice-face {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        border: 1px solid
+          color-mix(in srgb, var(--pip, #17181b) 18%, transparent);
+        border-radius: calc(var(--die-size) * 0.17);
+        background-color: var(--face, #f2f3f5);
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.05)),
+          var(--texture, none);
+        background-size: cover;
+        background-position: center;
+        color: var(--pip, #17181b);
+        box-shadow:
+          inset 0 0 18px rgba(255, 255, 255, 0.3),
+          inset 0 -7px 14px rgba(0, 0, 0, 0.1);
+        backface-visibility: hidden;
+      }
+      .pip-grid {
+        width: 64%;
+        height: 64%;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+      }
+      .pip-grid i {
+        width: 48%;
+        aspect-ratio: 1;
+        place-self: center;
+        border-radius: 50%;
+        background: currentColor;
+        box-shadow:
+          inset 0 1px 2px rgba(0, 0, 0, 0.22),
+          0 1px 0 rgba(255, 255, 255, 0.18);
+        opacity: 0;
+      }
+      .pips-1 i:nth-child(5),
+      .pips-2 i:nth-child(1),
+      .pips-2 i:nth-child(9),
+      .pips-3 i:nth-child(1),
+      .pips-3 i:nth-child(5),
+      .pips-3 i:nth-child(9),
+      .pips-4 i:nth-child(1),
+      .pips-4 i:nth-child(3),
+      .pips-4 i:nth-child(7),
+      .pips-4 i:nth-child(9),
+      .pips-5 i:nth-child(1),
+      .pips-5 i:nth-child(3),
+      .pips-5 i:nth-child(5),
+      .pips-5 i:nth-child(7),
+      .pips-5 i:nth-child(9),
+      .pips-6 i:nth-child(1),
+      .pips-6 i:nth-child(3),
+      .pips-6 i:nth-child(4),
+      .pips-6 i:nth-child(6),
+      .pips-6 i:nth-child(7),
+      .pips-6 i:nth-child(9) {
+        opacity: 1;
+      }
+      .dice-front {
+        transform: rotateY(0deg) translateZ(calc(var(--die-size) / 2));
+      }
+      .dice-back {
+        transform: rotateY(180deg) translateZ(calc(var(--die-size) / 2));
+      }
+      .dice-right {
+        transform: rotateY(90deg) translateZ(calc(var(--die-size) / 2));
+      }
+      .dice-left {
+        transform: rotateY(-90deg) translateZ(calc(var(--die-size) / 2));
+      }
+      .dice-top {
+        transform: rotateX(90deg) translateZ(calc(var(--die-size) / 2));
+      }
+      .dice-bottom {
+        transform: rotateX(-90deg) translateZ(calc(var(--die-size) / 2));
+      }
+      .roll-stage.rolling .dice-cube {
+        animation: dice-roll 1.25s cubic-bezier(0.22, 0.7, 0.22, 1) infinite;
+      }
+      @keyframes dice-idle {
+        0%,
+        100% {
+          transform: rotateX(-18deg) rotateY(32deg) translateY(0);
+        }
+        50% {
+          transform: rotateX(-12deg) rotateY(43deg) translateY(-7px);
+        }
+      }
+      @keyframes dice-roll {
+        0% {
+          transform: rotateX(-18deg) rotateY(32deg) scale(0.96);
+        }
+        38% {
+          transform: rotateX(248deg) rotateY(196deg) scale(1.1)
+            translateY(-10px);
+        }
+        72% {
+          transform: rotateX(512deg) rotateY(422deg) scale(1.02);
+        }
+        100% {
+          transform: rotateX(702deg) rotateY(572deg) scale(0.96);
+        }
+      }
+      .roll-side {
+        display: grid;
+        gap: 12px;
+        align-content: start;
+      }
+      .side-panel {
+        padding: 16px;
+      }
+      .side-panel h3 {
+        margin: 0 0 12px;
+        color: var(--text);
+        font-size: 14px;
+      }
+      .side-list {
+        display: grid;
+        gap: 8px;
+      }
+      .history-row {
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 9px;
+        padding: 7px;
+        border-radius: 5px;
+        background: #25272b;
+      }
+      .history-thumb {
+        width: 38px;
+        height: 38px;
+        position: relative;
+        overflow: hidden;
+        border-radius: 4px;
+        background: #202225;
+      }
+      .history-row strong {
+        display: block;
+        overflow: hidden;
+        color: var(--normal);
+        font-size: 12px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .history-row small {
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .history-row > span:last-child {
+        color: var(--muted);
+        font-size: 10px;
+      }
 
-    .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
-    .filter-group{display:flex;gap:3px;padding:3px;border-radius:5px;background:var(--bg-side)}
-    .filter-group button{min-height:32px;padding:0 11px;border:0;border-radius:3px;background:transparent;color:var(--muted);font-size:12px;font-weight:650;cursor:pointer}
-    .filter-group button.active{background:#43454c;color:var(--text)}
-    .search{min-width:220px;flex:1;max-width:360px;height:38px;padding:0 11px;border:1px solid transparent;border-radius:4px;background:var(--bg-input);color:var(--text)}
-    .search:focus{border-color:var(--brand)}
-    .progress-line{margin-left:auto;color:var(--muted);font-size:12px}
-    .progress-line b{color:var(--text)}
-    .locked-overlay{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
-    .locked-overlay span{padding:5px 8px;border-radius:4px;background:rgba(17,18,20,.86);color:var(--muted);font-size:11px;font-weight:750}
-    .empty{padding:48px 24px;border:1px dashed #47494f;border-radius:8px;text-align:center;color:var(--muted)}
-    .empty strong{display:block;margin-bottom:5px;color:var(--normal);font-size:16px}
+      .filters {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      .filter-group {
+        display: flex;
+        gap: 3px;
+        padding: 3px;
+        border-radius: 5px;
+        background: var(--bg-side);
+      }
+      .filter-group button {
+        min-height: 32px;
+        padding: 0 11px;
+        border: 0;
+        border-radius: 3px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 650;
+        cursor: pointer;
+      }
+      .filter-group button.active {
+        background: #43454c;
+        color: var(--text);
+      }
+      .search {
+        min-width: 220px;
+        flex: 1;
+        max-width: 360px;
+        height: 38px;
+        padding: 0 11px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        background: var(--bg-input);
+        color: var(--text);
+      }
+      .search:focus {
+        border-color: var(--brand);
+      }
+      .progress-line {
+        margin-left: auto;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .progress-line b {
+        color: var(--text);
+      }
+      .locked-overlay {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+      }
+      .locked-overlay span {
+        padding: 5px 8px;
+        border-radius: 4px;
+        background: rgba(17, 18, 20, 0.86);
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 750;
+      }
+      .empty {
+        padding: 48px 24px;
+        border: 1px dashed #47494f;
+        border-radius: 8px;
+        text-align: center;
+        color: var(--muted);
+      }
+      .empty strong {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--normal);
+        font-size: 16px;
+      }
 
-    .profile-layout{display:grid;grid-template-columns:310px minmax(0,1fr);gap:16px;align-items:start}
-    .profile-card{position:relative;overflow:hidden}
-    .profile-banner{height:112px;background:linear-gradient(135deg,var(--accent,#5865f2),#30323a)}
-    .profile-avatar{width:84px;height:84px;display:grid;place-items:center;margin:-43px 0 0 20px;border:7px solid var(--bg-card);border-radius:50%;background:var(--green);color:#fff;font-size:28px;font-weight:850;position:relative}
-    .profile-avatar:after{content:"";position:absolute;right:1px;bottom:2px;width:15px;height:15px;border:4px solid var(--bg-card);border-radius:50%;background:var(--green)}
-    .profile-info{padding:13px 20px 20px}
-    .profile-info h2{margin:0;color:var(--text);font-size:22px}
-    .profile-handle{color:var(--muted)}
-    .profile-badges{display:flex;gap:5px;margin:12px 0}
-    .profile-badges span{width:25px;height:25px;display:grid;place-items:center;border-radius:4px;background:#202225;color:#aeb4ff;font-size:11px;font-weight:900}
-    .profile-about{padding-top:13px;border-top:1px solid var(--border)}
-    .profile-about h3,.profile-joined span{margin:0 0 5px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.06em}
-    .profile-about p{margin:0;color:var(--normal);font-size:13px;white-space:pre-wrap}
-    .profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:16px 0}
-    .profile-stats div{padding:9px 5px;border-radius:4px;background:#25272b;text-align:center}
-    .profile-stats strong{display:block;color:var(--text)}
-    .profile-stats span{color:var(--muted);font-size:10px}
-    .profile-joined{display:grid;margin:13px 0;color:var(--normal);font-size:12px}
-    .profile-actions{display:grid;gap:7px;margin-top:16px}
-    .showcase{padding:20px}
-    .showcase-head{display:flex;justify-content:space-between;gap:14px;align-items:start}
-    .showcase-head h2{margin:0;color:var(--text);font-size:20px}
-    .showcase-head p{margin:5px 0 0;color:var(--muted);font-size:13px}
-    .showcase-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:18px 0;padding:4px;border-radius:5px;background:#25272b}
-    .showcase-tabs button{height:38px;border:0;border-radius:3px;background:transparent;color:var(--muted);font-size:12px;font-weight:650;cursor:pointer}
-    .showcase-tabs button.active{background:#42444b;color:var(--text)}
-    .showcase-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
-    .showcase-slot{position:relative;min-height:180px;overflow:hidden;border:1px solid var(--border);border-top:3px solid var(--rarity,#41434a);border-radius:6px;background:#25272b}
-    .showcase-slot.empty-slot{display:grid;place-items:center;border-style:dashed;border-top-width:1px;color:var(--faint);cursor:default}
-    .showcase-slot.empty-slot.editing{cursor:pointer}
-    .showcase-slot.empty-slot.editing:hover{border-color:#6f76df;color:#aeb4ff}
-    .empty-slot span{font-size:25px}
-    .empty-slot small{display:block;margin-top:3px;font-size:10px}
-    .slot-art{height:112px;position:relative;overflow:hidden;background:#202225}
-    .slot-art img{width:100%;height:100%;object-fit:cover}
-    .slot-art .art-fallback b{font-size:27px}
-    .slot-art>span{position:absolute;right:6px;top:6px;padding:2px 5px;border-radius:8px;background:rgba(17,18,20,.84);font-size:10px}
-    .slot-body{padding:8px}
-    .slot-body small{display:block;color:var(--rarity);font-size:9px;font-weight:800;text-transform:uppercase}
-    .slot-body strong{display:block;overflow:hidden;color:var(--text);font-size:11px;white-space:nowrap;text-overflow:ellipsis}
-    .slot-body span{color:var(--muted);font-size:10px}
-    .slot-edit{position:absolute;top:5px;left:5px;display:flex;gap:3px}
-    .slot-edit button{height:25px;padding:0 6px;border:0;border-radius:3px;background:rgba(17,18,20,.9);font-size:10px;cursor:pointer}
-    .showcase-footer{display:flex;gap:20px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
-    .showcase-footer b{color:var(--normal)}
+      .profile-layout {
+        display: grid;
+        grid-template-columns: 310px minmax(0, 1fr);
+        gap: 16px;
+        align-items: start;
+      }
+      .profile-card {
+        position: relative;
+        overflow: hidden;
+      }
+      .profile-banner {
+        height: 112px;
+        background: linear-gradient(135deg, var(--accent, #5865f2), #30323a);
+      }
+      .profile-avatar {
+        width: 84px;
+        height: 84px;
+        display: grid;
+        place-items: center;
+        margin: -43px 0 0 20px;
+        border: 7px solid var(--bg-card);
+        border-radius: 50%;
+        background: var(--green);
+        color: #fff;
+        font-size: 28px;
+        font-weight: 850;
+        position: relative;
+        overflow: hidden;
+      }
+      .profile-avatar img,
+      .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .profile-avatar:after {
+        content: "";
+        position: absolute;
+        right: 1px;
+        bottom: 2px;
+        width: 15px;
+        height: 15px;
+        border: 4px solid var(--bg-card);
+        border-radius: 50%;
+        background: var(--green);
+      }
+      .dice-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .dice-card {
+        position: relative;
+        min-height: 390px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .dice-card.equipped {
+        border-color: color-mix(in srgb, var(--face) 48%, #232428);
+      }
+      .dice-visual {
+        min-height: 190px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(180deg, #25272b, #222327);
+        border-bottom: 1px solid var(--border);
+      }
+      .dice-card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+      }
+      .dice-card-head {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .dice-card h3 {
+        margin: 0;
+        color: var(--text);
+        font-size: 17px;
+      }
+      .dice-card p {
+        min-height: 42px;
+        margin: 7px 0 15px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .dice-level {
+        padding: 3px 7px;
+        border-radius: 10px;
+        background: #202225;
+        color: var(--normal);
+        font-size: 10px;
+        font-weight: 750;
+      }
+      .dice-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+        margin-bottom: 12px;
+      }
+      .dice-stats div {
+        padding: 9px;
+        border-radius: 5px;
+        background: #25272b;
+      }
+      .dice-stats span,
+      .dice-progress-label {
+        display: block;
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .dice-stats b {
+        display: block;
+        margin-top: 2px;
+        color: var(--text);
+      }
+      .dice-progress {
+        height: 5px;
+        margin: 6px 0 15px;
+        overflow: hidden;
+        border-radius: 4px;
+        background: #1e1f22;
+      }
+      .dice-progress i {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--brand);
+      }
+      .dice-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+        margin-top: auto;
+      }
+      .dice-actions.single {
+        grid-template-columns: 1fr;
+      }
+      .upload-box {
+        display: grid;
+        grid-template-columns: 82px minmax(0, 1fr);
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border: 1px dashed #4a4d55;
+        border-radius: 6px;
+        background: #25272b;
+      }
+      .upload-preview {
+        width: 82px;
+        height: 82px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        border-radius: 6px;
+        background: #1e1f22;
+        color: var(--muted);
+        font-weight: 800;
+      }
+      .upload-preview.round {
+        border-radius: 50%;
+      }
+      .upload-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .upload-copy small {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+      }
+      .file-button {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 0 12px;
+        overflow: hidden;
+        border-radius: 4px;
+        background: #3b3d43;
+        color: var(--normal);
+        font-weight: 650;
+        cursor: pointer;
+      }
+      .file-button:hover {
+        background: #45474e;
+      }
+      .file-button input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+      }
+      .profile-info {
+        padding: 13px 20px 20px;
+      }
+      .profile-info h2 {
+        margin: 0;
+        color: var(--text);
+        font-size: 22px;
+      }
+      .profile-handle {
+        color: var(--muted);
+      }
+      .profile-badges {
+        display: flex;
+        gap: 5px;
+        margin: 12px 0;
+      }
+      .profile-badges span {
+        width: 25px;
+        height: 25px;
+        display: grid;
+        place-items: center;
+        border-radius: 4px;
+        background: #202225;
+        color: #aeb4ff;
+        font-size: 11px;
+        font-weight: 900;
+      }
+      .profile-about {
+        padding-top: 13px;
+        border-top: 1px solid var(--border);
+      }
+      .profile-about h3,
+      .profile-joined span {
+        margin: 0 0 5px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+      }
+      .profile-about p {
+        margin: 0;
+        color: var(--normal);
+        font-size: 13px;
+        white-space: pre-wrap;
+      }
+      .profile-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+        margin: 16px 0;
+      }
+      .profile-stats div {
+        padding: 9px 5px;
+        border-radius: 4px;
+        background: #25272b;
+        text-align: center;
+      }
+      .profile-stats strong {
+        display: block;
+        color: var(--text);
+      }
+      .profile-stats span {
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .profile-joined {
+        display: grid;
+        margin: 13px 0;
+        color: var(--normal);
+        font-size: 12px;
+      }
+      .profile-actions {
+        display: grid;
+        gap: 7px;
+        margin-top: 16px;
+      }
+      .showcase {
+        padding: 20px;
+      }
+      .showcase-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        align-items: start;
+      }
+      .showcase-head h2 {
+        margin: 0;
+        color: var(--text);
+        font-size: 20px;
+      }
+      .showcase-head p {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .showcase-tabs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4px;
+        margin: 18px 0;
+        padding: 4px;
+        border-radius: 5px;
+        background: #25272b;
+      }
+      .showcase-tabs button {
+        height: 38px;
+        border: 0;
+        border-radius: 3px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 650;
+        cursor: pointer;
+      }
+      .showcase-tabs button.active {
+        background: #42444b;
+        color: var(--text);
+      }
+      .showcase-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 9px;
+      }
+      .showcase-slot {
+        position: relative;
+        min-height: 180px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-top: 3px solid var(--rarity, #41434a);
+        border-radius: 6px;
+        background: #25272b;
+      }
+      .showcase-slot.empty-slot {
+        display: grid;
+        place-items: center;
+        border-style: dashed;
+        border-top-width: 1px;
+        color: var(--faint);
+        cursor: default;
+      }
+      .showcase-slot.empty-slot.editing {
+        cursor: pointer;
+      }
+      .showcase-slot.empty-slot.editing:hover {
+        border-color: #6f76df;
+        color: #aeb4ff;
+      }
+      .empty-slot span {
+        font-size: 25px;
+      }
+      .empty-slot small {
+        display: block;
+        margin-top: 3px;
+        font-size: 10px;
+      }
+      .slot-art {
+        height: 112px;
+        position: relative;
+        overflow: hidden;
+        background: #202225;
+      }
+      .slot-art img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .slot-art .art-fallback b {
+        font-size: 27px;
+      }
+      .slot-art > span {
+        position: absolute;
+        right: 6px;
+        top: 6px;
+        padding: 2px 5px;
+        border-radius: 8px;
+        background: rgba(17, 18, 20, 0.84);
+        font-size: 10px;
+      }
+      .slot-body {
+        padding: 8px;
+      }
+      .slot-body small {
+        display: block;
+        color: var(--rarity);
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+      .slot-body strong {
+        display: block;
+        overflow: hidden;
+        color: var(--text);
+        font-size: 11px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .slot-body span {
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .slot-edit {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        display: flex;
+        gap: 3px;
+      }
+      .slot-edit button {
+        height: 25px;
+        padding: 0 6px;
+        border: 0;
+        border-radius: 3px;
+        background: rgba(17, 18, 20, 0.9);
+        font-size: 10px;
+        cursor: pointer;
+      }
+      .showcase-footer {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .showcase-footer b {
+        color: var(--normal);
+      }
 
-    .potion-grid,.event-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-    .potion-card,.event-card{padding:18px}
-    .potion-icon{width:48px;height:48px;display:grid;place-items:center;margin-bottom:15px;border-radius:8px;background:color-mix(in srgb,var(--potion) 16%,#25272b);color:var(--potion);font-size:23px;font-weight:900}
-    .potion-card h3,.event-card h3{margin:0;color:var(--text);font-size:16px}
-    .potion-card p,.event-card p{min-height:42px;margin:7px 0 14px;color:var(--muted);font-size:13px}
-    .potion-meta,.event-meta{display:flex;justify-content:space-between;gap:10px;margin-bottom:14px;color:var(--muted);font-size:12px}
-    .potion-meta b,.event-meta b{color:var(--normal)}
-    .potion-card button{width:100%}
-    .event-card{border-top:3px solid var(--event)}
-    .status{display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase}
-    .status i{width:7px;height:7px;border-radius:50%;background:var(--faint)}
-    .status.live i{background:var(--green)}
+      .potion-grid,
+      .event-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .potion-card,
+      .event-card {
+        padding: 18px;
+      }
+      .potion-icon {
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        background: color-mix(in srgb, var(--potion) 16%, #25272b);
+        color: var(--potion);
+        font-size: 23px;
+        font-weight: 900;
+      }
+      .potion-card h3,
+      .event-card h3 {
+        margin: 0;
+        color: var(--text);
+        font-size: 16px;
+      }
+      .potion-card p,
+      .event-card p {
+        min-height: 42px;
+        margin: 7px 0 14px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .potion-meta,
+      .event-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 14px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .potion-meta b,
+      .event-meta b {
+        color: var(--normal);
+      }
+      .potion-card button {
+        width: 100%;
+      }
+      .event-card {
+        border-top: 3px solid var(--event);
+      }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 10px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .status i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--faint);
+      }
+      .status.live i {
+        background: var(--green);
+      }
 
-    .admin-tabs{display:flex;gap:3px;margin-bottom:16px;padding:4px;border-radius:5px;background:var(--bg-side)}
-    .admin-tabs button{height:36px;padding:0 14px;border:0;border-radius:3px;background:transparent;color:var(--muted);font-weight:650;cursor:pointer}
-    .admin-tabs button.active{background:#42444b;color:var(--text)}
-    .admin-list{display:grid;gap:7px}
-    .admin-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;padding:12px 14px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card)}
-    .admin-row-main{display:flex;align-items:center;gap:12px;min-width:0}
-    .admin-swatch{width:10px;height:38px;border-radius:3px;background:var(--swatch,#949ba4);flex:none}
-    .admin-row strong{display:block;overflow:hidden;color:var(--text);white-space:nowrap;text-overflow:ellipsis}
-    .admin-row small{color:var(--muted)}
-    .admin-row-actions{display:flex;gap:6px}
+      .admin-tabs {
+        display: flex;
+        gap: 3px;
+        margin-bottom: 16px;
+        padding: 4px;
+        border-radius: 5px;
+        background: var(--bg-side);
+      }
+      .admin-tabs button {
+        height: 36px;
+        padding: 0 14px;
+        border: 0;
+        border-radius: 3px;
+        background: transparent;
+        color: var(--muted);
+        font-weight: 650;
+        cursor: pointer;
+      }
+      .admin-tabs button.active {
+        background: #42444b;
+        color: var(--text);
+      }
+      .admin-list {
+        display: grid;
+        gap: 7px;
+      }
+      .admin-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 16px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--bg-card);
+      }
+      .admin-row-main {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+      .admin-swatch {
+        width: 10px;
+        height: 38px;
+        border-radius: 3px;
+        background: var(--swatch, #949ba4);
+        flex: none;
+      }
+      .admin-row strong {
+        display: block;
+        overflow: hidden;
+        color: var(--text);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .admin-row small {
+        color: var(--muted);
+      }
+      .admin-row-actions {
+        display: flex;
+        gap: 6px;
+      }
 
-    .hud{position:fixed;right:18px;bottom:18px;z-index:35;width:280px;display:grid;gap:7px;pointer-events:none}
-    .hud-item{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:9px;padding:9px 10px;border:1px solid #151618;border-radius:6px;background:rgba(30,31,34,.96);box-shadow:0 8px 22px rgba(0,0,0,.25);pointer-events:auto}
-    .hud-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:5px;background:#2b2d31;color:var(--accent,#fff);font-weight:850}
-    .hud-copy{min-width:0}
-    .hud-copy strong{display:block;overflow:hidden;color:var(--text);font-size:12px;white-space:nowrap;text-overflow:ellipsis}
-    .hud-copy small{display:block;overflow:hidden;color:var(--muted);font-size:10px;white-space:nowrap;text-overflow:ellipsis}
-    .hud-time{color:var(--normal);font-size:11px;font-variant-numeric:tabular-nums}
+      .hud {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 35;
+        width: 280px;
+        display: grid;
+        gap: 7px;
+        pointer-events: none;
+      }
+      .hud-item {
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 9px;
+        padding: 9px 10px;
+        border: 1px solid #151618;
+        border-radius: 6px;
+        background: rgba(30, 31, 34, 0.96);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
+        pointer-events: auto;
+      }
+      .hud-icon {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 5px;
+        background: #2b2d31;
+        color: var(--accent, #fff);
+        font-weight: 850;
+      }
+      .hud-copy {
+        min-width: 0;
+      }
+      .hud-copy strong {
+        display: block;
+        overflow: hidden;
+        color: var(--text);
+        font-size: 12px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .hud-copy small {
+        display: block;
+        overflow: hidden;
+        color: var(--muted);
+        font-size: 10px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .hud-time {
+        color: var(--normal);
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+      }
 
-    .modal-backdrop{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:22px;background:rgba(0,0,0,.62)}
-    .modal{width:min(620px,100%);max-height:min(760px,calc(100vh - 44px));overflow:auto;border:1px solid #17181a;border-radius:8px;background:var(--bg-side);box-shadow:0 24px 70px rgba(0,0,0,.5)}
-    .modal.wide{width:min(820px,100%)}
-    .modal-head{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:14px;padding:18px 20px;border-bottom:1px solid var(--border);background:var(--bg-side)}
-    .modal-head h2{margin:0;color:var(--text);font-size:19px}
-    .modal-head p{margin:3px 0 0;color:var(--muted);font-size:12px}
-    .close{width:32px;height:32px;border:0;border-radius:4px;background:transparent;color:var(--muted);font-size:22px;cursor:pointer}
-    .close:hover{background:#3b3d43;color:var(--text)}
-    .modal-body{padding:20px}
-    .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
-    .picker-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
-    .picker-card{min-width:0;display:grid;grid-template-columns:52px minmax(0,1fr);gap:8px;align-items:center;padding:7px;border:1px solid var(--border);border-left:3px solid var(--rarity);border-radius:5px;background:#25272b;text-align:left;cursor:pointer}
-    .picker-card:hover{background:#383a40}
-    .picker-thumb{width:52px;height:52px;position:relative;overflow:hidden;border-radius:3px;background:#202225}
-    .picker-thumb img{width:100%;height:100%;object-fit:cover}
-    .picker-copy{min-width:0}
-    .picker-copy strong,.picker-copy small{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-    .picker-copy strong{color:var(--text);font-size:11px}
-    .picker-copy small{color:var(--muted);font-size:9px}
-    .player-list{display:grid;gap:6px;margin-top:14px}
-    .player-row{display:grid;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:10px;padding:8px;border:0;border-radius:5px;background:#25272b;text-align:left;cursor:pointer}
-    .player-row:hover{background:#3a3c42}
-    .player-row strong{display:block;color:var(--text)}
-    .player-row small{color:var(--muted)}
-    .player-row>span:last-child{text-align:right;color:var(--muted);font-size:11px}
-    .check-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:8px}
-    .check-option{display:flex;align-items:center;gap:8px;padding:8px;border-radius:4px;background:#25272b;color:var(--normal);font-size:12px}
-    .check-option input{accent-color:var(--brand)}
-    .toast{position:fixed;left:50%;bottom:26px;z-index:160;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #17181a;border-radius:5px;background:var(--bg-pop);box-shadow:var(--shadow);color:var(--normal);font-size:13px;animation:toast-in .2s ease-out}
-    .toast.ok:before{content:"✓";color:#6ee7a1;font-weight:900}
-    .toast.error:before{content:"!";color:#ff8d8f;font-weight:900}
-    @keyframes toast-in{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
-    .loading{min-height:420px;display:grid;place-items:center;color:var(--muted)}
-    .spinner{width:28px;height:28px;margin:0 auto 10px;border:3px solid #44464d;border-top-color:var(--brand);border-radius:50%;animation:spin .75s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        padding: 22px;
+        background: rgba(0, 0, 0, 0.62);
+      }
+      .modal {
+        width: min(620px, 100%);
+        max-height: min(760px, calc(100vh - 44px));
+        overflow: auto;
+        border: 1px solid #17181a;
+        border-radius: 8px;
+        background: var(--bg-side);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+      }
+      .modal.wide {
+        width: min(820px, 100%);
+      }
+      .modal-head {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-side);
+      }
+      .modal-head h2 {
+        margin: 0;
+        color: var(--text);
+        font-size: 19px;
+      }
+      .modal-head p {
+        margin: 3px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .close {
+        width: 32px;
+        height: 32px;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 22px;
+        cursor: pointer;
+      }
+      .close:hover {
+        background: #3b3d43;
+        color: var(--text);
+      }
+      .modal-body {
+        padding: 20px;
+      }
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+      }
+      .picker-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 14px;
+      }
+      .picker-card {
+        min-width: 0;
+        display: grid;
+        grid-template-columns: 52px minmax(0, 1fr);
+        gap: 8px;
+        align-items: center;
+        padding: 7px;
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--rarity);
+        border-radius: 5px;
+        background: #25272b;
+        text-align: left;
+        cursor: pointer;
+      }
+      .picker-card:hover {
+        background: #383a40;
+      }
+      .picker-thumb {
+        width: 52px;
+        height: 52px;
+        position: relative;
+        overflow: hidden;
+        border-radius: 3px;
+        background: #202225;
+      }
+      .picker-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .picker-copy {
+        min-width: 0;
+      }
+      .picker-copy strong,
+      .picker-copy small {
+        display: block;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .picker-copy strong {
+        color: var(--text);
+        font-size: 11px;
+      }
+      .picker-copy small {
+        color: var(--muted);
+        font-size: 9px;
+      }
+      .player-list {
+        display: grid;
+        gap: 6px;
+        margin-top: 14px;
+      }
+      .player-row {
+        display: grid;
+        grid-template-columns: 42px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+        padding: 8px;
+        border: 0;
+        border-radius: 5px;
+        background: #25272b;
+        text-align: left;
+        cursor: pointer;
+      }
+      .player-row:hover {
+        background: #3a3c42;
+      }
+      .player-row strong {
+        display: block;
+        color: var(--text);
+      }
+      .player-row small {
+        color: var(--muted);
+      }
+      .player-row > span:last-child {
+        text-align: right;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .check-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 7px;
+        margin-top: 8px;
+      }
+      .check-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border-radius: 4px;
+        background: #25272b;
+        color: var(--normal);
+        font-size: 12px;
+      }
+      .check-option input {
+        accent-color: var(--brand);
+      }
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 26px;
+        z-index: 160;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border: 1px solid #17181a;
+        border-radius: 5px;
+        background: var(--bg-pop);
+        box-shadow: var(--shadow);
+        color: var(--normal);
+        font-size: 13px;
+        animation: toast-in 0.2s ease-out;
+      }
+      .toast.ok:before {
+        content: "✓";
+        color: #6ee7a1;
+        font-weight: 900;
+      }
+      .toast.error:before {
+        content: "!";
+        color: #ff8d8f;
+        font-weight: 900;
+      }
+      @keyframes toast-in {
+        from {
+          opacity: 0;
+          transform: translate(-50%, 8px);
+        }
+        to {
+          opacity: 1;
+          transform: translate(-50%, 0);
+        }
+      }
+      .loading {
+        min-height: 420px;
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+      }
+      .spinner {
+        width: 28px;
+        height: 28px;
+        margin: 0 auto 10px;
+        border: 3px solid #44464d;
+        border-top-color: var(--brand);
+        border-radius: 50%;
+        animation: spin 0.75s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
 
-    @media(max-width:1050px){
-      .card-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-      .home-grid{grid-template-columns:1fr}
-      .hero-panel{min-height:320px}
-      .potion-grid,.event-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .profile-layout{grid-template-columns:270px minmax(0,1fr)}
-      .showcase-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-    }
-    @media(max-width:800px){
-      .auth-wrap{grid-template-columns:1fr;max-width:480px}
-      .auth-intro{display:none}
-      .app-shell{display:block;padding-bottom:64px}
-      .topbar{position:sticky}
-      .brand-button{width:auto;flex:1;border-right:0}
-      .brand-button span:last-child,.live-chip,.currency,.profile-chip-copy{display:none}
-      .sidebar{position:fixed;left:0;right:0;top:auto;bottom:0;z-index:80;width:auto;height:64px;padding:6px;background:#25262a;border-top:1px solid #17181a;overflow-x:auto;overflow-y:hidden}
-      .nav{display:flex;min-width:max-content}
-      .nav-button{width:72px;height:52px;display:grid;place-items:center;gap:0;padding:2px;font-size:10px;text-align:center}
-      .nav-icon{font-size:18px}
-      .nav-separator,.sidebar-foot{display:none}
-      .main{min-height:calc(100vh - 48px);padding:22px 16px 100px}
-      .roll-layout,.profile-layout{grid-template-columns:1fr}
-      .roll-side{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .profile-card{max-width:420px;width:100%}
-      .hud{right:10px;bottom:74px;width:min(280px,calc(100vw - 20px))}
-      .card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .picker-grid{grid-template-columns:repeat(2,1fr)}
-    }
-    @media(max-width:560px){
-      .auth-shell{padding:0}.auth-wrap{min-height:100vh;border:0;border-radius:0}.auth-panel{padding:32px 22px}
-      .form-row{grid-template-columns:1fr}
-      .page-head{align-items:start;flex-direction:column}
-      .hero-panel{grid-template-columns:1fr}.hero-art{display:none}.hero-copy{padding:24px}.hero-copy h2{font-size:27px}
-      .card-grid{gap:8px}.card-body{padding:9px}.card-body p{display:none}.card-art{aspect-ratio:1}.card-body h3{font-size:13px}
-      .roll-stage{min-height:520px;padding:18px}.roll-stage:before{width:330px;height:330px}.roll-stage:after{width:220px;height:220px}
-      .roll-side{grid-template-columns:1fr}
-      .potion-grid,.event-grid{grid-template-columns:1fr}
-      .showcase{padding:14px}.showcase-head{flex-direction:column}.showcase-tabs button{font-size:10px}.showcase-grid{gap:7px}.showcase-slot{min-height:165px}
-      .hour-card{grid-template-columns:64px minmax(0,1fr)}.hour-art{width:64px;height:64px}.hour-odds{grid-column:1/-1;text-align:left;padding-top:10px;border-top:1px solid var(--border)}
-      .picker-grid{grid-template-columns:1fr}.modal-backdrop{padding:0}.modal{max-height:100vh;border-radius:0}.check-grid{grid-template-columns:1fr}
-      .admin-row{grid-template-columns:1fr}.admin-row-actions{justify-content:flex-end}
-    }
-  </style>
-</head>
-<body>
-  <section id="auth" class="auth-shell">
-    <div class="auth-wrap">
-      <div class="auth-intro">
-        <div class="auth-brand"><span class="auth-logo">R</span> RIFT ROLL</div>
-        <div class="auth-copy">
-          <h1>Колекція починається з одного ролу.</h1>
-          <p>Збирай аніме-картки, знаходь рідкісні мутації та формуй публічну вітрину профілю.</p>
-        </div>
-        <div class="auth-note"><i></i><span>Без акаунта рол, інвентар і профілі недоступні</span></div>
-      </div>
-      <div class="auth-panel">
-        <h2 id="auth-title">З поверненням</h2>
-        <p id="auth-subtitle">Увійди, щоб продовжити свою колекцію.</p>
-        <div class="auth-tabs">
-          <button id="login-tab" class="active" type="button" onclick="setAuthMode('login')">Вхід</button>
-          <button id="register-tab" type="button" onclick="setAuthMode('register')">Реєстрація</button>
-        </div>
-        <form id="auth-form" class="form-stack">
-          <div id="register-fields" hidden>
-            <div class="form-row">
-              <label class="field"><span>Ім’я</span><input id="auth-name" maxlength="32" autocomplete="name" placeholder="Alex"></label>
-              <label class="field"><span>Handle</span><input id="auth-handle" maxlength="20" autocomplete="username" placeholder="alex_rng"></label>
-            </div>
+      @media (max-width: 1050px) {
+        .card-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .home-grid {
+          grid-template-columns: 1fr;
+        }
+        .hero-panel {
+          min-height: 320px;
+        }
+        .potion-grid,
+        .event-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .profile-layout {
+          grid-template-columns: 270px minmax(0, 1fr);
+        }
+        .showcase-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .dice-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 800px) {
+        .auth-wrap {
+          grid-template-columns: 1fr;
+          max-width: 480px;
+        }
+        .auth-intro {
+          display: none;
+        }
+        .app-shell {
+          display: block;
+          padding-bottom: 64px;
+        }
+        .topbar {
+          position: sticky;
+        }
+        .brand-button {
+          width: auto;
+          flex: 1;
+          border-right: 0;
+        }
+        .brand-button span:last-child,
+        .live-chip,
+        .currency,
+        .profile-chip-copy {
+          display: none;
+        }
+        .sidebar {
+          position: fixed;
+          left: 0;
+          right: 0;
+          top: auto;
+          bottom: 0;
+          z-index: 80;
+          width: auto;
+          height: 64px;
+          padding: 6px;
+          background: #25262a;
+          border-top: 1px solid #17181a;
+          overflow-x: auto;
+          overflow-y: hidden;
+        }
+        .nav {
+          display: flex;
+          min-width: max-content;
+        }
+        .nav-button {
+          width: 72px;
+          height: 52px;
+          display: grid;
+          place-items: center;
+          gap: 0;
+          padding: 2px;
+          font-size: 10px;
+          text-align: center;
+        }
+        .nav-icon {
+          font-size: 18px;
+        }
+        .nav-separator,
+        .sidebar-foot {
+          display: none;
+        }
+        .main {
+          min-height: calc(100vh - 48px);
+          padding: 22px 16px 100px;
+        }
+        .roll-layout,
+        .profile-layout {
+          grid-template-columns: 1fr;
+        }
+        .roll-side {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .profile-card {
+          max-width: 420px;
+          width: 100%;
+        }
+        .hud {
+          right: 10px;
+          bottom: 74px;
+          width: min(280px, calc(100vw - 20px));
+        }
+        .card-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .picker-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 560px) {
+        .auth-shell {
+          padding: 0;
+        }
+        .auth-wrap {
+          min-height: 100vh;
+          border: 0;
+          border-radius: 0;
+        }
+        .auth-panel {
+          padding: 32px 22px;
+        }
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+        .page-head {
+          align-items: start;
+          flex-direction: column;
+        }
+        .hero-panel {
+          grid-template-columns: 1fr;
+        }
+        .hero-art {
+          display: none;
+        }
+        .hero-copy {
+          padding: 24px;
+        }
+        .hero-copy h2 {
+          font-size: 27px;
+        }
+        .card-grid {
+          gap: 8px;
+        }
+        .card-body {
+          padding: 9px;
+        }
+        .card-body p {
+          display: none;
+        }
+        .card-art {
+          aspect-ratio: 1;
+        }
+        .card-body h3 {
+          font-size: 13px;
+        }
+        .roll-stage {
+          min-height: 520px;
+          padding: 18px;
+        }
+        .roll-stage:before {
+          width: 330px;
+          height: 330px;
+        }
+        .roll-stage:after {
+          width: 220px;
+          height: 220px;
+        }
+        .roll-side {
+          grid-template-columns: 1fr;
+        }
+        .potion-grid,
+        .event-grid {
+          grid-template-columns: 1fr;
+        }
+        .showcase {
+          padding: 14px;
+        }
+        .showcase-head {
+          flex-direction: column;
+        }
+        .showcase-tabs button {
+          font-size: 10px;
+        }
+        .showcase-grid {
+          gap: 7px;
+        }
+        .showcase-slot {
+          min-height: 165px;
+        }
+        .hour-card {
+          grid-template-columns: 64px minmax(0, 1fr);
+        }
+        .hour-art {
+          width: 64px;
+          height: 64px;
+        }
+        .hour-odds {
+          grid-column: 1/-1;
+          text-align: left;
+          padding-top: 10px;
+          border-top: 1px solid var(--border);
+        }
+        .picker-grid {
+          grid-template-columns: 1fr;
+        }
+        .modal-backdrop {
+          padding: 0;
+        }
+        .modal {
+          max-height: 100vh;
+          border-radius: 0;
+        }
+        .check-grid {
+          grid-template-columns: 1fr;
+        }
+        .admin-row {
+          grid-template-columns: 1fr;
+        }
+        .admin-row-actions {
+          justify-content: flex-end;
+        }
+        .dice-grid {
+          grid-template-columns: 1fr;
+        }
+        .dice-card {
+          min-height: 0;
+        }
+        .upload-box {
+          grid-template-columns: 64px minmax(0, 1fr);
+        }
+        .upload-preview {
+          width: 64px;
+          height: 64px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <section id="auth" class="auth-shell">
+      <div class="auth-wrap">
+        <div class="auth-intro">
+          <div class="auth-brand">
+            <span class="auth-logo">R</span> RIFT ROLL
           </div>
-          <label class="field"><span>Email</span><input id="auth-email" type="email" required autocomplete="email" placeholder="you@example.com"></label>
-          <label class="field"><span>Пароль</span><input id="auth-password" type="password" minlength="8" required autocomplete="current-password" placeholder="Мінімум 8 символів"></label>
-          <button id="auth-submit" class="submit-button" type="submit">Увійти</button>
-        </form>
-        <p id="auth-error" class="auth-error"></p>
+          <div class="auth-copy">
+            <h1>Колекція починається з одного ролу.</h1>
+            <p>
+              Збирай аніме-картки, знаходь рідкісні мутації та формуй публічну
+              вітрину профілю.
+            </p>
+          </div>
+          <div class="auth-note">
+            <i></i><span>Без акаунта рол, інвентар і профілі недоступні</span>
+          </div>
+        </div>
+        <div class="auth-panel">
+          <h2 id="auth-title">З поверненням</h2>
+          <p id="auth-subtitle">Увійди, щоб продовжити свою колекцію.</p>
+          <div class="auth-tabs">
+            <button
+              id="login-tab"
+              class="active"
+              type="button"
+              onclick="setAuthMode('login')"
+            >
+              Вхід
+            </button>
+            <button
+              id="register-tab"
+              type="button"
+              onclick="setAuthMode('register')"
+            >
+              Реєстрація
+            </button>
+          </div>
+          <form id="auth-form" class="form-stack">
+            <div id="register-fields" hidden>
+              <div class="form-row">
+                <label class="field"
+                  ><span>Ім’я</span
+                  ><input
+                    id="auth-name"
+                    maxlength="32"
+                    autocomplete="name"
+                    placeholder="Alex"
+                /></label>
+                <label class="field"
+                  ><span>Handle</span
+                  ><input
+                    id="auth-handle"
+                    maxlength="20"
+                    autocomplete="username"
+                    placeholder="alex_rng"
+                /></label>
+              </div>
+            </div>
+            <label class="field"
+              ><span>Email</span
+              ><input
+                id="auth-email"
+                type="email"
+                required
+                autocomplete="email"
+                placeholder="you@example.com"
+            /></label>
+            <label class="field"
+              ><span>Пароль</span
+              ><input
+                id="auth-password"
+                type="password"
+                minlength="8"
+                required
+                autocomplete="current-password"
+                placeholder="Мінімум 8 символів"
+            /></label>
+            <button id="auth-submit" class="submit-button" type="submit">
+              Увійти
+            </button>
+          </form>
+          <p id="auth-error" class="auth-error"></p>
+        </div>
       </div>
+    </section>
+
+    <div id="app" class="app-shell" hidden>
+      <header class="topbar">
+        <button class="brand-button" onclick="go('home')">
+          <span class="brand-mark">R</span><strong>RIFT ROLL</strong
+          ><span>Anime RNG</span>
+        </button>
+        <button id="top-event" class="live-chip" onclick="go('events')">
+          <i class="live-dot"></i><strong>ІВЕНТ</strong
+          ><span>Завантаження…</span>
+        </button>
+        <div class="topbar-right">
+          <div class="currency"><i>◆</i><span id="top-coins">0</span></div>
+          <button class="profile-chip" onclick="openOwnProfile()">
+            <span id="top-avatar" class="avatar">R</span
+            ><span class="profile-chip-copy"
+              ><strong id="top-name">Riftwalker</strong
+              ><small id="top-handle">@riftwalker</small></span
+            >
+          </button>
+        </div>
+      </header>
+      <aside class="sidebar">
+        <nav id="nav" class="nav"></nav>
+        <div class="nav-separator"></div>
+        <div class="sidebar-foot">
+          <div class="sidebar-stat">
+            <span>Luck</span><b id="side-luck">1.00×</b>
+          </div>
+          <div class="sidebar-stat">
+            <span>Кубик</span><b id="side-dice">Origin</b>
+          </div>
+          <div class="sidebar-stat">
+            <span>Дохід</span><b id="side-income">$0/s</b>
+          </div>
+          <div class="sidebar-stat">
+            <span>Індекс</span><b id="side-index">0/0</b>
+          </div>
+        </div>
+      </aside>
+      <main id="main" class="main">
+        <div class="loading">
+          <div>
+            <div class="spinner"></div>
+            Відкриваємо рифт…
+          </div>
+        </div>
+      </main>
     </div>
-  </section>
+    <div id="hud" class="hud"></div>
+    <div id="modal-root"></div>
+    <div id="toast-root"></div>
 
-  <div id="app" class="app-shell" hidden>
-    <header class="topbar">
-      <button class="brand-button" onclick="go('home')"><span class="brand-mark">R</span><strong>RIFT ROLL</strong><span>Anime RNG</span></button>
-      <button id="top-event" class="live-chip" onclick="go('events')"><i class="live-dot"></i><strong>ІВЕНТ</strong><span>Завантаження…</span></button>
-      <div class="topbar-right">
-        <div class="currency"><i>◆</i><span id="top-coins">0</span></div>
-        <button class="profile-chip" onclick="openOwnProfile()"><span id="top-avatar" class="avatar">R</span><span class="profile-chip-copy"><strong id="top-name">Riftwalker</strong><small id="top-handle">@riftwalker</small></span></button>
-      </div>
-    </header>
-    <aside class="sidebar">
-      <nav id="nav" class="nav"></nav>
-      <div class="nav-separator"></div>
-      <div class="sidebar-foot">
-        <div class="sidebar-stat"><span>Luck</span><b id="side-luck">1.00×</b></div>
-        <div class="sidebar-stat"><span>Дохід</span><b id="side-income">$0/s</b></div>
-        <div class="sidebar-stat"><span>Індекс</span><b id="side-index">0/0</b></div>
-      </div>
-    </aside>
-    <main id="main" class="main"><div class="loading"><div><div class="spinner"></div>Відкриваємо рифт…</div></div></main>
-  </div>
-  <div id="hud" class="hud"></div>
-  <div id="modal-root"></div>
-  <div id="toast-root"></div>
-
-  <script>
-    const state={authMode:'login',view:'home',game:null,result:null,rolling:false,indexMutation:'base',search:'',rarity:'all',profile:null,profileTarget:null,profilePage:0,editingShowcase:false,admin:null,adminTab:'cards',now:Date.now()};
-    const navBase=[['home','⌂','Головна'],['roll','↻','Крутка'],['index','▤','Індекс'],['collection','▦','Колекція'],['profile','◎','Профіль'],['potions','⚗','Зілля'],['events','◷','Івенти']];
-    const $=id=>document.getElementById(id);
-    const esc=value=>String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
-    const compact=value=>new Intl.NumberFormat('uk-UA',{notation:Number(value)>=10000?'compact':'standard',maximumFractionDigits:1}).format(Number(value)||0);
-    const money=value=>'$'+compact(Math.floor(Number(value)||0));
-    const dateText=value=>{const d=new Date(value);return Number.isNaN(d.getTime())?'нещодавно':new Intl.DateTimeFormat('uk-UA',{day:'numeric',month:'long',year:'numeric'}).format(d)};
-    const initials=value=>String(value||'R').split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
-    const safeImage=value=>{const v=String(value||'').trim();return /^(https?:\/\/|\/)/i.test(v)||/^data:image\/(png|jpe?g|webp|gif);base64,/i.test(v)?esc(v):''};
-    const remaining=value=>{if(!value)return'';let s=Math.max(0,Math.floor((new Date(value).getTime()-state.now)/1000));const h=Math.floor(s/3600);s%=3600;const m=Math.floor(s/60),r=s%60;return h?`${h}:${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`:`${m}:${String(r).padStart(2,'0')}`};
-    const chance=(weight,cards=state.game?.cards||[])=>{const total=cards.filter(x=>x.availableNow).reduce((s,x)=>s+Number(x.baseWeight),0);if(!total)return'—';const p=Number(weight)/total*100;return p>=.1?`${p.toFixed(p>=10?1:2)}%`:`1 / ${compact(Math.round(100/p))}`};
-    function art(item,klass=''){const src=safeImage(item.imageUrl);return `<div class="${klass} card-art" style="--rarity:${esc(item.rarityColor||'#949ba4')}">${src?`<img src="${src}" alt="${esc(item.name)}" onerror="this.hidden=true">`:''}<div class="art-fallback"><b>${esc(initials(item.name))}</b><small>RIFT ROLL</small></div></div>`}
-    async function api(url,options={}){const response=await fetch(url,{...options,headers:{...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})}});let data={};try{data=await response.json()}catch{}if(response.status===401){showAuth();throw new Error(data.detail||'Потрібен вхід.')}if(!response.ok){const err=new Error(data.detail||data.error||'Запит не виконано.');err.retry=Number(response.headers.get('Retry-After-Ms')||0);throw err}return data}
-    function toast(message,type='ok'){const root=$('toast-root');root.innerHTML=`<div class="toast ${type}">${esc(message)}</div>`;clearTimeout(toast.timer);toast.timer=setTimeout(()=>root.innerHTML='',2800)}
-    function setAuthMode(mode){state.authMode=mode;const register=mode==='register';$('login-tab').classList.toggle('active',!register);$('register-tab').classList.toggle('active',register);$('register-fields').hidden=!register;$('auth-title').textContent=register?'Створи акаунт':'З поверненням';$('auth-subtitle').textContent=register?'Почни колекцію та створи свій профіль.':'Увійди, щоб продовжити свою колекцію.';$('auth-submit').textContent=register?'Зареєструватися':'Увійти';$('auth-password').autocomplete=register?'new-password':'current-password';$('auth-error').textContent=''}
-    function showAuth(){$('app').hidden=true;$('hud').innerHTML='';$('auth').hidden=false}
-    function showApp(){$('auth').hidden=true;$('app').hidden=false}
-    $('auth-form').addEventListener('submit',async event=>{event.preventDefault();const error=$('auth-error'),button=$('auth-submit');error.textContent='';button.disabled=true;button.textContent=state.authMode==='register'?'Створюємо…':'Входимо…';try{const body=state.authMode==='register'?{email:$('auth-email').value,password:$('auth-password').value,display_name:$('auth-name').value,handle:$('auth-handle').value}:{email:$('auth-email').value,password:$('auth-password').value};await api(`/api/auth/${state.authMode}`,{method:'POST',body:JSON.stringify(body)});await boot()}catch(e){error.textContent=e.message}finally{button.disabled=false;button.textContent=state.authMode==='register'?'Зареєструватися':'Увійти'}});
-    async function boot(){try{await api('/api/me');showApp();await loadGame();const target=new URLSearchParams(location.search).get('profile');if(target){state.profileTarget=target;await go('profile')}else go(state.view)}catch{showAuth()}}
-    async function loadGame(){state.game=await api('/api/game');renderChrome();renderHud();if(!state.profileTarget&&state.profile?.isOwner)state.profile=null}
-    function renderChrome(){if(!state.game)return;const p=state.game.player;$('top-coins').textContent=compact(p.coins);$('top-name').textContent=p.displayName;$('top-handle').textContent='@'+p.handle;$('top-avatar').textContent=initials(p.displayName);$('side-luck').textContent=Number(p.luck).toFixed(2)+'×';$('side-income').textContent=money(p.totalIncomePerSecond)+'/s';$('side-index').textContent=`${p.uniqueOwned}/${p.totalCards}`;const event=state.game.events.find(x=>x.isLive),top=$('top-event');top.innerHTML=event?`<i class="live-dot"></i><strong>ІВЕНТ</strong><span>${esc(event.name)}</span>`:`<i class="live-dot" style="background:var(--faint)"></i><strong>ІВЕНТИ</strong><span>Немає активних</span>`;renderNav()}
-    function renderNav(){const items=[...navBase];if(state.game?.player.isAdmin)items.push(['admin','⚙','Admin Studio']);$('nav').innerHTML=items.map(([id,icon,label])=>`<button class="nav-button ${state.view===id?'active':''}" onclick="go('${id}')"><span class="nav-icon">${icon}</span><span>${label}</span></button>`).join('')}
-    async function go(view){state.view=view;renderNav();if(view==='profile'){await loadProfile(state.profileTarget);return}if(view==='admin'&&!state.admin){$('main').innerHTML=loading();try{state.admin=await api('/api/admin')}catch(e){toast(e.message,'error');state.view='home'} }render()}
-    function openOwnProfile(){state.profileTarget=null;history.replaceState(null,'',location.pathname);go('profile')}
-    function loading(text='Завантаження…'){return `<div class="loading"><div><div class="spinner"></div>${esc(text)}</div></div>`}
-    function pageHead(eyebrow,title,description,actions=''){return `<header class="page-head"><div><span class="eyebrow">${esc(eyebrow)}</span><h1>${esc(title)}</h1><p>${esc(description)}</p></div>${actions?`<div class="page-actions">${actions}</div>`:''}</header>`}
-    function gameCard(card,options={}){const owned=options.owned||0,locked=options.locked??!card.availableNow;return `<article class="game-card ${locked?'locked':''}" style="--rarity:${esc(options.color||card.rarityColor)}">${art(card)}${card.eventOnly?'<span class="card-badge">EVENT</span>':''}${owned?`<span class="owned-badge">×${owned}</span>`:''}${locked?'<div class="locked-overlay"><span>НЕ ВІДКРИТО</span></div>':''}<div class="card-body"><div class="rarity-row"><i></i><span>${esc(options.label||card.rarityName)}</span><span>${chance(card.baseWeight)}</span></div><h3>${esc(card.name)}</h3><p>${esc(card.subtitle)}</p><div class="card-meta"><span><b>${money(Number(card.incomePerSecond)*(options.multiplier||1))}</b>/s</span><span>Tier ${card.rarityTier}</span></div></div></article>`}
-    function render(){if(!state.game)return;$('main').innerHTML=`<div class="page">${({home:renderHome,roll:renderRoll,index:renderIndex,collection:renderCollection,potions:renderPotions,events:renderEvents,admin:renderAdmin}[state.view]||renderHome)()}</div>`;renderHud()}
-    function renderHome(){const g=state.game,p=g.player,event=g.events.find(x=>x.isLive),champ=g.hourlyChampion;const topCards=g.cards.filter(x=>x.availableNow).slice(0,4);return `${pageHead('Anime RNG','Головна',`Рівень ${p.level} · ${compact(p.rolls)} ролів · Luck ${Number(p.luck).toFixed(2)}×`)}<div class="home-grid"><section class="panel hero-panel"><div class="hero-copy"><span class="eyebrow">${event?'Активний івент':'Постійний пул'}</span><h2>${event?esc(event.name):'Розлом готовий до нового ролу'}</h2><p>${event?esc(event.description):'Крути куб, відкривай нові варіанти й збирай вітрину для свого профілю.'}</p><div class="hero-actions"><button class="primary" onclick="go('roll')">Зробити рол</button><button class="ghost" onclick="go('index')">Відкрити Index</button></div></div><div class="hero-art"><div class="rift-disk"></div><div class="hero-badge"><b>${event?'Event pool увімкнено':'Звичайний пул'}</b>${event?'Ексклюзивні картки та мутації зараз доступні.':'Події можна запускати через Admin Studio.'}</div></div></section><div class="stats-grid"><div class="stat-card"><span>Колекція</span><strong>${p.uniqueOwned}/${p.totalCards}</strong><small>унікальних карток</small></div><div class="stat-card"><span>Дохід</span><strong>${money(p.totalIncomePerSecond)}/s</strong><small>пасивно з колекції</small></div><div class="stat-card"><span>Luck</span><strong>${Number(p.luck).toFixed(2)}×</strong><small>поточний множник</small></div><div class="stat-card"><span>Баланс</span><strong>${money(p.coins)}</strong><small>rift credits</small></div></div></div><section class="wide-section"><div class="section-head"><div><h2>Roll of the Hour</h2><p>Найрідкісніше глобальне випадіння поточної години.</p></div><span class="eyebrow">оновлення через ${remaining(g.hourEndsAt)}</span></div>${champ?`<article class="panel hour-card" style="--rarity:${esc(champ.mutationColor||champ.rarityColor)}"><div class="hour-art">${art(champ)}</div><div class="hour-copy"><small>@${esc(champ.playerHandle)} · ${esc(champ.playerName)}</small><h3>${esc(champ.name)}</h3><p><b>${esc(champ.mutationName||champ.rarityName)}</b> · ${dateText(champ.rolledAt)}</p></div><div class="hour-odds"><strong>1 / ${compact(Math.round(champ.oddsDenominator))}</strong><span>${money(champ.incomePerSecond)}/s</span></div></article>`:`<div class="empty"><strong>Цього часу ще ніхто не ролив</strong>Перший сильний рол одразу з’явиться тут.</div>`}</section><section class="wide-section"><div class="section-head"><div><h2>Активний пул</h2><p>Картки з найвищими рівнями рідкості, доступні зараз.</p></div><button class="text-button" onclick="go('index')">Дивитися весь Index</button></div><div class="card-grid">${topCards.map(c=>gameCard(c,{locked:false})).join('')}</div></section>`}
-    function renderRoll(){const g=state.game;return `${pageHead('Основний цикл','Крутка','Сервер обирає картку та окремо перевіряє кожну доступну мутацію.')}<div class="roll-layout"><section id="roll-stage" class="panel roll-stage ${state.rolling?'rolling':''}">${state.result&&!state.rolling?`<div class="roll-result">${gameCard(state.result,{locked:false,label:state.result.mutation?.name||state.result.rarityName,color:state.result.mutation?.color||state.result.rarityColor,multiplier:state.result.mutation?.incomeMultiplier||1})}<div class="result-note"><b>${(state.result.adjustedChance*100).toFixed(4)}%</b> з Luck ${Number(state.result.effectiveLuck).toFixed(2)}× · +${state.result.xpEarned} XP</div></div><button class="roll-button" style="margin-top:18px" onclick="doRoll()">ROLL AGAIN</button>`:`<div class="roll-core"><span>R</span></div><div class="roll-copy"><h2>${state.rolling?'Розлом заряджається':'Куб готовий'}</h2><p>${state.rolling?'Сервер уже визначає результат':'Luck '+Number(g.player.luck).toFixed(2)+'× · Speed '+Number(g.player.speed).toFixed(2)+'×'}</p></div><button class="roll-button" onclick="doRoll()" ${state.rolling?'disabled':''}>${state.rolling?'ROLLING…':'ROLL'}</button>`}</section><aside class="roll-side"><section class="panel side-panel"><h3>Поточні параметри</h3><div class="sidebar-stat"><span>Luck</span><b>${Number(g.player.luck).toFixed(2)}×</b></div><div class="sidebar-stat"><span>Speed</span><b>${Number(g.player.speed).toFixed(2)}×</b></div><div class="sidebar-stat"><span>Ролів</span><b>${compact(g.player.rolls)}</b></div></section><section class="panel side-panel"><h3>Останні роли</h3><div class="side-list">${g.history.length?g.history.map(h=>`<div class="history-row"><div class="history-thumb">${art(h)}</div><span><strong>${esc(h.name)}</strong><small style="color:${esc(h.mutationColor||h.rarityColor)}">${esc(h.mutationName||h.rarityName)}</small></span><span>${new Date(h.rolledAt).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'})}</span></div>`).join(''):'<small style="color:var(--muted)">Історія порожня.</small>'}</div></section></aside></div>`}
-    async function doRoll(){if(state.rolling)return;state.view='roll';state.rolling=true;state.result=null;render();const started=Date.now();try{const data=await api('/api/roll',{method:'POST'});await new Promise(r=>setTimeout(r,Math.max(0,1250-(Date.now()-started))));state.game=data.snapshot;state.result=data.result;renderChrome()}catch(e){toast(e.retry?`Куб заряджається ще ${(e.retry/1000).toFixed(1)}с`:e.message,'error')}finally{state.rolling=false;render()}}
-    function ownedVariant(cardId,key){return state.game.inventory.find(x=>x.cardId===cardId&&x.mutationKey===String(key))}
-    function renderIndex(){const g=state.game,mutations=[{id:'base',name:'Normal',color:'#949ba4',incomeMultiplier:1},...g.mutations];const selected=mutations.find(x=>String(x.id)===String(state.indexMutation))||mutations[0];const visible=g.cards.filter(card=>selected.id==='base'||card.mutationIds.includes(Number(selected.id)));const owned=visible.filter(card=>ownedVariant(card.id,selected.id)).length;return `${pageHead('Каталог знахідок','Index','Невідкриті картки приховані, але їхня позиція в каталозі залишається видимою.')}<div class="filters"><div class="filter-group">${mutations.map(m=>`<button class="${String(state.indexMutation)===String(m.id)?'active':''}" onclick="state.indexMutation='${m.id}';render()">${esc(m.name)}</button>`).join('')}</div><span class="progress-line"><b>${owned}/${visible.length}</b> відкрито</span></div><div class="card-grid">${visible.map(card=>{const item=ownedVariant(card.id,selected.id);return gameCard(card,{locked:!item,owned:item?.quantity||0,label:selected.id==='base'?card.rarityName:selected.name,color:selected.id==='base'?card.rarityColor:selected.color,multiplier:selected.incomeMultiplier})}).join('')}</div>`}
-    function setCollectionSearch(value){state.search=value;render()}
-    function setRarity(value){state.rarity=value;render()}
-    function renderCollection(){const g=state.game,rarities=[...new Set(g.inventory.map(x=>x.rarityName))];const q=state.search.toLowerCase();const list=g.inventory.filter(x=>(state.rarity==='all'||x.rarityName===state.rarity)&&`${x.name} ${x.mutationName||''}`.toLowerCase().includes(q));return `${pageHead('Твій інвентар','Колекція',`${g.inventory.length} відкритих варіантів · ${compact(g.inventory.reduce((s,x)=>s+x.quantity,0))} карток загалом`,'<button class="primary" onclick="go(\'roll\')">Новий рол</button>')}<div class="filters"><input class="search" value="${esc(state.search)}" oninput="setCollectionSearch(this.value)" placeholder="Знайти картку або мутацію…"><select class="toolbar-input" style="max-width:180px" onchange="setRarity(this.value)"><option value="all">Усі рідкості</option>${rarities.map(r=>`<option ${state.rarity===r?'selected':''}>${esc(r)}</option>`).join('')}</select></div>${list.length?`<div class="card-grid">${list.map(item=>gameCard({...item,availableNow:true,baseWeight:state.game.cards.find(c=>c.id===item.cardId)?.baseWeight||1},{locked:false,owned:item.quantity,label:item.mutationName||item.rarityName,color:item.mutationColor||item.rarityColor,multiplier:item.incomeMultiplier})).join('')}</div>`:`<div class="empty"><strong>Нічого не знайдено</strong>Зміни фільтр або зроби ще кілька ролів.</div>`}`}
-    async function loadProfile(target){state.profileTarget=target||null;$('main').innerHTML=loading('Відкриваємо профіль…');try{state.profile=await api('/api/profile'+(target?`?handle=${encodeURIComponent(target)}`:''));state.profilePage=0;state.editingShowcase=false;renderProfile()}catch(e){$('main').innerHTML=`<div class="page"><div class="empty"><strong>Профіль не відкрився</strong>${esc(e.message)}</div></div>`}}
-    function renderProfile(){const data=state.profile;if(!data)return;state.view='profile';renderNav();const p=data.profile,slots=new Map(data.showcase.filter(x=>x.pageIndex===state.profilePage).map(x=>[x.slotIndex,x]));$('main').innerHTML=`<div class="page">${pageHead('Публічний профіль',data.isOwner?'Твоя вітрина':`Вітрина ${p.displayName}`,data.isOwner?'Обери до 32 карток: 4 сторінки по 8 слотів.':`@${p.handle} · ${compact(p.rolls)} ролів`,`${!data.isOwner?'<button class="ghost" onclick="openOwnProfile()">Мій профіль</button>':''}<button class="ghost" onclick="openPlayers()">Знайти гравця</button><button class="ghost" onclick="shareProfile()">Поділитися</button>`)}<div class="profile-layout"><aside class="panel profile-card" style="--accent:${esc(p.accent)}"><div class="profile-banner"></div><div class="profile-avatar">${esc(initials(p.displayName))}</div><div class="profile-info"><h2>${esc(p.displayName)}</h2><span class="profile-handle">@${esc(p.handle)}</span><div class="profile-badges"><span>R</span>${p.level>=10?'<span>X</span>':''}${p.uniqueOwned>=5?'<span>◆</span>':''}</div><div class="profile-about"><h3>ПРО МЕНЕ</h3><p>${esc(p.bio||'Ще не залишив опис профілю.')}</p></div><div class="profile-stats"><div><strong>${p.level}</strong><span>Рівень</span></div><div><strong>${compact(p.rolls)}</strong><span>Ролів</span></div><div><strong>${p.uniqueOwned}</strong><span>Карток</span></div></div><div class="profile-joined"><span>У RIFT ROLL З</span><b>${dateText(p.joinedAt)}</b></div>${data.isOwner?`<div class="profile-actions"><button class="primary" onclick="openProfileEdit()">Редагувати профіль</button><button class="ghost" onclick="logout()">Вийти з акаунта</button></div>`:''}</div></aside><section class="panel showcase"><div class="showcase-head"><div><span class="eyebrow">32 місця · 4 сторінки</span><h2>Вибрані картки</h2><p>${data.isOwner?'Покажи іншим найкращі знахідки зі свого інвентарю.':`${p.ownedVariants} варіантів у колекції.`}</p></div>${data.isOwner?`<button class="${state.editingShowcase?'primary':'ghost'}" onclick="state.editingShowcase=!state.editingShowcase;renderProfile()">${state.editingShowcase?'Готово':'Змінити вітрину'}</button>`:''}</div><div class="showcase-tabs">${[0,1,2,3].map(i=>`<button class="${state.profilePage===i?'active':''}" onclick="state.profilePage=${i};renderProfile()">Вітрина ${i+1} · ${data.showcase.filter(x=>x.pageIndex===i).length}/8</button>`).join('')}</div><div class="showcase-grid">${Array.from({length:8},(_,i)=>showcaseSlot(slots.get(i),i,data.isOwner)).join('')}</div><footer class="showcase-footer"><span><b>${p.ownedVariants}</b> варіантів</span><span><b>${money(p.totalIncomePerSecond)}/s</b> дохід</span><span><b>${p.uniqueOwned}/${p.totalCards}</b> Index</span></footer></section></div></div>`;renderHud()}
-    function showcaseSlot(item,slot,isOwner){if(!item)return `<button class="showcase-slot empty-slot ${state.editingShowcase&&isOwner?'editing':''}" ${state.editingShowcase&&isOwner?`onclick="openPicker(${slot})"`:''}><span>${state.editingShowcase&&isOwner?'+':'◇'}</span><small>${state.editingShowcase&&isOwner?'Додати картку':`Порожній слот ${slot+1}`}</small></button>`;return `<article class="showcase-slot" style="--rarity:${esc(item.mutationColor||item.rarityColor)}"><div class="slot-art">${art(item)}<span>×${item.quantity}</span></div><div class="slot-body"><small>${esc(item.mutationName||item.rarityName)}</small><strong>${esc(item.name)}</strong><span>${money(item.incomePerSecond*item.incomeMultiplier)}/s</span></div>${state.editingShowcase&&isOwner?`<div class="slot-edit"><button onclick="openPicker(${slot})">Замінити</button><button onclick="clearSlot(${slot})">×</button></div>`:''}</article>`}
-    function openProfileEdit(){const p=state.profile.profile;openModal(`<div class="modal-head"><div><h2>Редагувати профіль</h2><p>Ці дані бачать інші авторизовані гравці.</p></div><button class="close" onclick="closeModal()">×</button></div><form id="profile-form" class="modal-body"><div class="form-stack"><label class="field"><span>Ім’я</span><input name="display_name" value="${esc(p.displayName)}" maxlength="32" required></label><label class="field"><span>Handle</span><input name="handle" value="${esc(p.handle)}" maxlength="20" required></label><label class="field"><span>Про себе</span><textarea name="bio" maxlength="190">${esc(p.bio)}</textarea></label></div><div class="modal-actions"><button type="button" class="ghost" onclick="closeModal()">Скасувати</button><button class="primary">Зберегти</button></div></form>`);$('profile-form').onsubmit=saveProfile}
-    async function saveProfile(event){event.preventDefault();const f=new FormData(event.target);try{state.profile=await api('/api/profile',{method:'PATCH',body:JSON.stringify(Object.fromEntries(f))});state.game.player.displayName=state.profile.profile.displayName;state.game.player.handle=state.profile.profile.handle;state.game.player.bio=state.profile.profile.bio;closeModal();renderChrome();renderProfile();toast('Профіль збережено.')}catch(e){toast(e.message,'error')}}
-    function openPicker(slot){const list=state.profile.inventoryOptions;openModal(`<div class="modal-head"><div><h2>Вибери картку</h2><p>Вітрина ${state.profilePage+1} · слот ${slot+1}</p></div><button class="close" onclick="closeModal()">×</button></div><div class="modal-body"><input id="picker-search" class="search" style="max-width:none" placeholder="Назва, рідкість або мутація…" oninput="filterPicker(${slot})"><div id="picker-grid" class="picker-grid">${pickerCards(list,slot)}</div></div>`,'wide')}
-    function pickerCards(list,slot){return list.map(item=>`<button class="picker-card" style="--rarity:${esc(item.mutationColor||item.rarityColor)}" onclick="setSlot(${slot},${item.id})"><div class="picker-thumb">${art(item)}</div><span class="picker-copy"><small>${esc(item.mutationName||item.rarityName)} · ×${item.quantity}</small><strong>${esc(item.name)}</strong></span></button>`).join('')||'<div class="empty" style="grid-column:1/-1">У колекції ще немає карток.</div>'}
-    function filterPicker(slot){const q=$('picker-search').value.toLowerCase();$('picker-grid').innerHTML=pickerCards(state.profile.inventoryOptions.filter(x=>`${x.name} ${x.rarityName} ${x.mutationName||''}`.toLowerCase().includes(q)),slot)}
-    async function setSlot(slot,inventoryId){try{state.profile=await api('/api/profile/showcase',{method:'PUT',body:JSON.stringify({page_index:state.profilePage,slot_index:slot,inventory_id:inventoryId})});closeModal();renderProfile();toast('Картку додано до вітрини.')}catch(e){toast(e.message,'error')}}
-    async function clearSlot(slot){try{state.profile=await api('/api/profile/showcase',{method:'PUT',body:JSON.stringify({page_index:state.profilePage,slot_index:slot,inventory_id:null})});renderProfile();toast('Слот очищено.')}catch(e){toast(e.message,'error')}}
-    function openPlayers(){openModal(`<div class="modal-head"><div><h2>Профілі гравців</h2><p>Пошук за ім’ям або @handle.</p></div><button class="close" onclick="closeModal()">×</button></div><div class="modal-body"><input id="player-search" class="search" style="max-width:none" placeholder="Почни вводити…" oninput="debouncedPlayers()"><div id="player-list" class="player-list">${loading()}</div></div>`);loadPlayers()}
-    let playerTimer;function debouncedPlayers(){clearTimeout(playerTimer);playerTimer=setTimeout(loadPlayers,180)}
-    async function loadPlayers(){try{const data=await api('/api/players?q='+encodeURIComponent($('player-search')?.value||''));$('player-list').innerHTML=data.players.map(p=>`<button class="player-row" onclick="visitPlayer('${esc(p.handle)}',${p.isViewer})"><span class="avatar">${esc(initials(p.displayName))}</span><span><strong>${esc(p.displayName)}</strong><small>@${esc(p.handle)}</small></span><span>LVL ${p.level}<br>${compact(p.rolls)} ролів</span></button>`).join('')||'<div class="empty">Нікого не знайдено.</div>'}catch(e){toast(e.message,'error')}}
-    function visitPlayer(handle,isViewer){closeModal();state.profileTarget=isViewer?null:handle;history.replaceState(null,'',isViewer?location.pathname:`?profile=${encodeURIComponent(handle)}`);loadProfile(state.profileTarget)}
-    async function shareProfile(){const url=`${location.origin}${location.pathname}?profile=${encodeURIComponent(state.profile.profile.handle)}`;try{await navigator.clipboard.writeText(url);toast('Посилання скопійовано.')}catch{prompt('Скопіюй посилання',url)}}
-    async function logout(){await api('/api/auth/logout',{method:'POST'});state.game=null;state.profile=null;closeModal();showAuth();toast('Ти вийшов з акаунта.')}
-    function renderPotions(){const g=state.game;return `${pageHead('Тимчасові бусти','Зілля','Активуй вручну. Ефекти з однаковим типом перемножуються, а час однакового зілля продовжується.')}<div class="potion-grid">${g.potions.map(p=>`<article class="panel potion-card" style="--potion:${esc(p.color)}"><div class="potion-icon">⚗</div><h3>${esc(p.name)}</h3><p>${esc(p.description)}</p><div class="potion-meta"><span>${p.effectType==='luck'?'Luck':'Speed'} <b>${p.multiplier}×</b></span><span>${Math.round(p.durationSeconds/60)} хв</span></div><button class="${p.activeUntil&&new Date(p.activeUntil)>state.now?'ghost':'primary'}" onclick="usePotion(${p.id})" ${p.quantity<1?'disabled':''}>${p.activeUntil&&new Date(p.activeUntil)>state.now?`Активне · ${remaining(p.activeUntil)}`:`Активувати · ×${p.quantity}`}</button></article>`).join('')}</div>`}
-    async function usePotion(id){try{const data=await api(`/api/potions/${id}/use`,{method:'POST'});state.game=data.snapshot;renderChrome();render();toast('Зілля активовано.')}catch(e){toast(e.message,'error')}}
-    function renderEvents(){const events=state.game.events;return `${pageHead('Обмежені випадіння','Івенти','Активні події автоматично додають прив’язані картки й мутації до пулу.')}<div class="event-grid">${events.map(e=>`<article class="panel event-card" style="--event:${esc(e.accent)}"><span class="status ${e.isLive?'live':''}"><i></i>${e.isLive?'Активний':e.status==='scheduled'?'Запланований':'Призупинений'}</span><h3>${esc(e.name)}</h3><p>${esc(e.description)}</p><div class="event-meta"><span>${e.startAt?dateText(e.startAt):'Ручний запуск'}</span><b>${e.isLive&&e.endAt?remaining(e.endAt):e.status}</b></div></article>`).join('')}</div>`}
-    function renderAdmin(){if(!state.game.player.isAdmin)return '<div class="empty">Немає доступу.</div>';const data=state.admin,kind=state.adminTab,labels={cards:'Картки',mutations:'Мутації',events:'Івенти',potions:'Зілля'};return `${pageHead('Керування без коду','Admin Studio','Зміни одразу зберігаються в Aiven PostgreSQL.',`<button class="primary" onclick="openAdminForm('${kind}')">Додати</button>`)}<div class="admin-tabs">${Object.entries(labels).map(([id,label])=>`<button class="${kind===id?'active':''}" onclick="state.adminTab='${id}';render()">${label} · ${data[id].length}</button>`).join('')}</div><div class="admin-list">${data[kind].map(item=>adminRow(kind,item)).join('')||'<div class="empty">Поки порожньо.</div>'}</div>`}
-    function adminRow(kind,item){let meta='',color=item.rarityColor||item.color||item.accent||'#949ba4';if(kind==='cards')meta=`${item.rarityName} · weight ${item.baseWeight} · ${money(item.incomePerSecond)}/s`;if(kind==='mutations')meta=`${(item.chance*100).toFixed(3)}% · income ${item.incomeMultiplier}×`;if(kind==='events')meta=`${item.isLive?'Активний':item.status} · ${item.startAt?dateText(item.startAt):'ручний'}`;if(kind==='potions')meta=`${item.effectType} ${item.multiplier}× · ${Math.round(item.durationSeconds/60)} хв`;return `<article class="admin-row"><div class="admin-row-main"><i class="admin-swatch" style="--swatch:${esc(color)}"></i><span><strong>${esc(item.name)}</strong><small>${esc(meta)}</small></span></div><div class="admin-row-actions">${kind==='events'?`<button class="small-button" onclick="toggleAdminEvent(${item.id})">${item.isLive?'Стоп':'Запустити'}</button>`:''}<button class="small-button" onclick="openAdminForm('${kind}',${item.id})">Редагувати</button><button class="danger" onclick="deleteAdmin('${kind}',${item.id})">Видалити</button></div></article>`}
-    function eventOptions(selected){return `<option value="">Без івенту</option>${state.admin.events.map(e=>`<option value="${e.id}" ${Number(selected)===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}`}
-    function openAdminForm(kind,id=null){const item=id?state.admin[kind].find(x=>x.id===id):null;let body='';if(kind==='cards')body=cardForm(item);if(kind==='mutations')body=mutationForm(item);if(kind==='events')body=eventForm(item);if(kind==='potions')body=potionForm(item);openModal(`<div class="modal-head"><div><h2>${item?'Редагувати':'Додати'} ${kind==='cards'?'картку':kind==='mutations'?'мутацію':kind==='events'?'івент':'зілля'}</h2><p>Збереження одразу змінить ігрові дані.</p></div><button class="close" onclick="closeModal()">×</button></div><form id="admin-form" class="modal-body">${body}<div class="modal-actions"><button type="button" class="ghost" onclick="closeModal()">Скасувати</button><button class="primary">Зберегти</button></div></form>`,'wide');$('admin-form').onsubmit=e=>saveAdmin(e,kind,id)}
-    const checked=v=>v?'checked':'';
-    function cardForm(x={}){return `<div class="form-stack"><div class="form-row"><label class="field"><span>Назва</span><input name="name" value="${esc(x.name||'')}" required></label><label class="field"><span>Підзаголовок</span><input name="subtitle" value="${esc(x.subtitle||'')}"></label></div><label class="field"><span>URL картинки</span><input name="image_url" value="${esc(x.imageUrl||'')}" placeholder="https://… (можна лишити порожнім)"></label><div class="form-row"><label class="field"><span>Рідкість</span><input name="rarity_name" value="${esc(x.rarityName||'Common')}" required></label><label class="field"><span>Tier (0–10)</span><input name="rarity_tier" type="number" min="0" max="10" value="${x.rarityTier??0}" required></label></div><div class="form-row"><label class="field"><span>Колір</span><input name="rarity_color" type="color" value="${esc(x.rarityColor||'#949ba4')}"></label><label class="field"><span>Вага в пулі</span><input name="base_weight" type="number" step="0.000001" min="0.000001" value="${x.baseWeight??1}" required></label></div><div class="form-row"><label class="field"><span>Дохід / секунду</span><input name="income_per_second" type="number" min="0" value="${x.incomePerSecond??1}" required></label><label class="field"><span>Івент</span><select name="event_id">${eventOptions(x.eventId)}</select></label></div><label class="check-option"><input name="event_only" type="checkbox" ${checked(x.eventOnly)}> Тільки під час прив’язаного івенту</label><label class="check-option"><input name="is_active" type="checkbox" ${checked(x.isActive??true)}> Картка активна</label><span class="field-label">Доступні мутації</span><div class="check-grid">${state.admin.mutations.map(m=>`<label class="check-option"><input type="checkbox" name="mutation_ids" value="${m.id}" ${checked((x.mutationIds||[]).includes(m.id))}> ${esc(m.name)} · ${(m.chance*100).toFixed(2)}%</label>`).join('')}</div></div>`}
-    function mutationForm(x={}){return `<div class="form-stack"><div class="form-row"><label class="field"><span>Назва</span><input name="name" value="${esc(x.name||'')}" required></label><label class="field"><span>Колір</span><input name="color" type="color" value="${esc(x.color||'#ffffff')}"></label></div><div class="form-row"><label class="field"><span>Шанс (0.08 = 8%)</span><input name="chance" type="number" step="0.000001" min="0.000001" max="100" value="${x.chance??.01}" required></label><label class="field"><span>Множник доходу</span><input name="income_multiplier" type="number" step="0.01" min="1" value="${x.incomeMultiplier??1}" required></label></div><label class="field"><span>Івент</span><select name="event_id">${eventOptions(x.eventId)}</select></label><label class="check-option"><input name="event_only" type="checkbox" ${checked(x.eventOnly)}> Тільки під час івенту</label><label class="check-option"><input name="is_active" type="checkbox" ${checked(x.isActive??true)}> Мутація активна</label></div>`}
-    function localDate(value){if(!value)return'';const d=new Date(value);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}
-    function eventForm(x={}){return `<div class="form-stack"><label class="field"><span>Назва</span><input name="name" value="${esc(x.name||'')}" required></label><label class="field"><span>Опис</span><textarea name="description">${esc(x.description||'')}</textarea></label><div class="form-row"><label class="field"><span>Колір</span><input name="accent" type="color" value="${esc(x.accent||'#f0b232')}"></label><label class="field"><span>Статус</span><select name="status">${['scheduled','active','paused'].map(v=>`<option ${x.status===v?'selected':''}>${v}</option>`).join('')}</select></label></div><div class="form-row"><label class="field"><span>Початок</span><input name="start_at" type="datetime-local" value="${localDate(x.startAt)}"></label><label class="field"><span>Кінець</span><input name="end_at" type="datetime-local" value="${localDate(x.endAt)}"></label></div></div>`}
-    function potionForm(x={}){return `<div class="form-stack"><label class="field"><span>Назва</span><input name="name" value="${esc(x.name||'')}" required></label><label class="field"><span>Опис</span><textarea name="description">${esc(x.description||'')}</textarea></label><div class="form-row"><label class="field"><span>Тип ефекту</span><select name="effect_type"><option value="luck" ${x.effectType==='luck'?'selected':''}>luck</option><option value="speed" ${x.effectType==='speed'?'selected':''}>speed</option></select></label><label class="field"><span>Множник</span><input name="multiplier" type="number" step="0.01" min="1.01" value="${x.multiplier??1.5}" required></label></div><div class="form-row"><label class="field"><span>Тривалість, секунд</span><input name="duration_seconds" type="number" min="5" value="${x.durationSeconds??600}" required></label><label class="field"><span>Стартова кількість</span><input name="starter_quantity" type="number" min="0" value="${x.starterQuantity??0}" required></label></div><label class="field"><span>Колір</span><input name="color" type="color" value="${esc(x.color||'#5865f2')}"></label><label class="check-option"><input name="is_active" type="checkbox" ${checked(x.isActive??true)}> Зілля активне</label></div>`}
-    async function saveAdmin(event,kind,id){event.preventDefault();const form=new FormData(event.target),data=Object.fromEntries(form);if(kind==='cards'){data.rarity_tier=Number(data.rarity_tier);data.base_weight=Number(data.base_weight);data.income_per_second=Number(data.income_per_second);data.event_id=data.event_id?Number(data.event_id):null;data.event_only=form.has('event_only');data.is_active=form.has('is_active');data.mutation_ids=form.getAll('mutation_ids').map(Number)}if(kind==='mutations'){data.chance=Number(data.chance);data.income_multiplier=Number(data.income_multiplier);data.event_id=data.event_id?Number(data.event_id):null;data.event_only=form.has('event_only');data.is_active=form.has('is_active')}if(kind==='events'){data.start_at=data.start_at?new Date(data.start_at).toISOString():null;data.end_at=data.end_at?new Date(data.end_at).toISOString():null}if(kind==='potions'){data.multiplier=Number(data.multiplier);data.duration_seconds=Number(data.duration_seconds);data.starter_quantity=Number(data.starter_quantity);data.is_active=form.has('is_active')}try{state.admin=await api(`/api/admin/${kind}${id?'/'+id:''}`,{method:id?'PUT':'POST',body:JSON.stringify(data)});closeModal();await loadGame();render();toast('Зміни збережено.')}catch(e){toast(e.message,'error')}}
-    async function deleteAdmin(kind,id){const item=state.admin[kind].find(x=>x.id===id),name=item?.name||'цей запис';if(!confirm(`Видалити «${name}»?`))return;try{state.admin=await api(`/api/admin/${kind}/${id}`,{method:'DELETE'});await loadGame();render();toast('Видалено.')}catch(e){toast(e.message,'error')}}
-    async function toggleAdminEvent(id){try{state.admin=await api(`/api/admin/events/${id}/toggle`,{method:'POST'});await loadGame();render();toast('Статус івенту змінено.')}catch(e){toast(e.message,'error')}}
-    function renderHud(){if(!state.game||$('app').hidden){$('hud').innerHTML='';return}const live=state.game.events.find(x=>x.isLive),active=state.game.potions.filter(x=>x.activeUntil&&new Date(x.activeUntil).getTime()>state.now);$('hud').innerHTML=[live?`<div class="hud-item"><span class="hud-icon" style="--accent:${esc(live.accent)}">◷</span><span class="hud-copy"><strong>${esc(live.name)}</strong><small>Активний івент</small></span><span class="hud-time">${live.endAt?remaining(live.endAt):'LIVE'}</span></div>`:'',...active.map(p=>`<div class="hud-item"><span class="hud-icon" style="--accent:${esc(p.color)}">⚗</span><span class="hud-copy"><strong>${esc(p.name)}</strong><small>${p.effectType} ${p.multiplier}×</small></span><span class="hud-time">${remaining(p.activeUntil)}</span></div>`)].join('')}
-    function openModal(content,wide=''){$('modal-root').innerHTML=`<div class="modal-backdrop" onclick="if(event.target===this)closeModal()"><section class="modal ${wide}">${content}</section></div>`}
-    function closeModal(){$('modal-root').innerHTML=''}
-    setInterval(()=>{state.now=Date.now();renderHud();if(state.view==='potions'||state.view==='events')render()},1000);
-    document.addEventListener('keydown',event=>{if(event.key==='Escape')closeModal()});
-    boot();
-  </script>
-</body>
+    <script>
+      const state = {
+        authMode: "login",
+        view: "home",
+        game: null,
+        result: null,
+        rolling: false,
+        indexMutation: "base",
+        search: "",
+        rarity: "all",
+        profile: null,
+        profileTarget: null,
+        profilePage: 0,
+        editingShowcase: false,
+        admin: null,
+        adminTab: "cards",
+        now: Date.now(),
+      };
+      const navBase = [
+        ["home", "⌂", "Головна"],
+        ["roll", "↻", "Крутка"],
+        ["dice", "⬡", "Кубики"],
+        ["index", "▤", "Індекс"],
+        ["collection", "▦", "Колекція"],
+        ["profile", "◎", "Профіль"],
+        ["potions", "⚗", "Зілля"],
+        ["events", "◷", "Івенти"],
+      ];
+      const $ = (id) => document.getElementById(id);
+      const esc = (value) =>
+        String(value ?? "").replace(
+          /[&<>'"]/g,
+          (char) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              "'": "&#39;",
+              '"': "&quot;",
+            })[char],
+        );
+      const compact = (value) =>
+        new Intl.NumberFormat("uk-UA", {
+          notation: Number(value) >= 10000 ? "compact" : "standard",
+          maximumFractionDigits: 1,
+        }).format(Number(value) || 0);
+      const money = (value) => "$" + compact(Math.floor(Number(value) || 0));
+      const formatLuck = (value) => {
+        const number = Number(value) || 0;
+        return number < 1000
+          ? `${number.toLocaleString("uk-UA", { maximumFractionDigits: 2 })}×`
+          : `${compact(number)}×`;
+      };
+      const dateText = (value) => {
+        const d = new Date(value);
+        return Number.isNaN(d.getTime())
+          ? "нещодавно"
+          : new Intl.DateTimeFormat("uk-UA", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            }).format(d);
+      };
+      const initials = (value) =>
+        String(value || "R")
+          .split(/\s+/)
+          .map((x) => x[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase();
+      const safeImage = (value) => {
+        const v = String(value || "").trim();
+        return /^(https?:\/\/|\/)/i.test(v) ||
+          /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(v)
+          ? esc(v)
+          : "";
+      };
+      const cssImage = (value) => {
+        const raw = String(value || "").trim();
+        if (!/^https?:\/\//i.test(raw)) return "none";
+        return `url("${esc(encodeURI(raw).replace(/[()\"]/g, (char) => encodeURIComponent(char)))}")`;
+      };
+      const remaining = (value) => {
+        if (!value) return "";
+        let s = Math.max(
+          0,
+          Math.floor((new Date(value).getTime() - state.now) / 1000),
+        );
+        const h = Math.floor(s / 3600);
+        s %= 3600;
+        const m = Math.floor(s / 60),
+          r = s % 60;
+        return h
+          ? `${h}:${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`
+          : `${m}:${String(r).padStart(2, "0")}`;
+      };
+      const chance = (card, cards = state.game?.cards || []) => {
+        const active = cards.filter((x) => x.availableNow);
+        if (!active.length || !card) return "—";
+        const logLuck = Math.log(
+          Math.max(1, Number(state.game?.player?.luck) || 1),
+        );
+        const scored = active.map((item) => ({
+          id: item.id,
+          log:
+            Math.log(Math.max(0.000001, Number(item.baseWeight))) +
+            Number(item.rarityTier) * 0.62 * logLuck,
+        }));
+        const peak = Math.max(...scored.map((item) => item.log));
+        const weighted = scored.map((item) => ({
+          ...item,
+          weight: Math.exp(item.log - peak),
+        }));
+        const total = weighted.reduce((sum, item) => sum + item.weight, 0);
+        const target = weighted.find((item) => item.id === card.id);
+        if (!target || !total) return "—";
+        const p = (target.weight / total) * 100;
+        return p >= 0.1
+          ? `${p.toFixed(p >= 10 ? 1 : 2)}%`
+          : `1 / ${compact(Math.round(100 / p))}`;
+      };
+      function art(item, klass = "") {
+        const src = safeImage(item.imageUrl);
+        return `<div class="${klass} card-art" style="--rarity:${esc(item.rarityColor || "#949ba4")}">${src ? `<img src="${src}" alt="${esc(item.name)}" onerror="this.hidden=true">` : ""}<div class="art-fallback"><b>${esc(initials(item.name))}</b><small>RIFT ROLL</small></div></div>`;
+      }
+      function avatarMarkup(url, name) {
+        const src = safeImage(url);
+        return src
+          ? `<img src="${src}" alt="${esc(name)}" onerror="this.replaceWith(document.createTextNode('${esc(initials(name))}'))">`
+          : esc(initials(name));
+      }
+      function diceMarkup(die, compactView = false) {
+        const data = die || {
+          faceColor: "#f2f3f5",
+          pipColor: "#17181b",
+          textureUrl: "",
+          name: "Origin Cube",
+        };
+        const style = `--face:${esc(data.faceColor || "#f2f3f5")};--pip:${esc(data.pipColor || "#17181b")};--texture:${cssImage(data.textureUrl)}`;
+        const pips = (count) =>
+          `<span class="pip-grid pips-${count}">${"<i></i>".repeat(9)}</span>`;
+        return `<div class="dice-scene ${compactView ? "compact" : ""}" aria-label="${esc(data.name)}"><div class="dice-cube" style='${style}'><div class="dice-face dice-front">${pips(1)}</div><div class="dice-face dice-back">${pips(6)}</div><div class="dice-face dice-right">${pips(3)}</div><div class="dice-face dice-left">${pips(4)}</div><div class="dice-face dice-top">${pips(2)}</div><div class="dice-face dice-bottom">${pips(5)}</div></div></div>`;
+      }
+      async function api(url, options = {}) {
+        const isForm = options.body instanceof FormData;
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            ...(options.body && !isForm
+              ? { "Content-Type": "application/json" }
+              : {}),
+            ...(options.headers || {}),
+          },
+        });
+        let data = {};
+        try {
+          data = await response.json();
+        } catch {}
+        if (response.status === 401) {
+          showAuth();
+          throw new Error(data.detail || "Потрібен вхід.");
+        }
+        if (!response.ok) {
+          const err = new Error(
+            data.detail || data.error || "Запит не виконано.",
+          );
+          err.retry = Number(response.headers.get("Retry-After-Ms") || 0);
+          throw err;
+        }
+        return data;
+      }
+      function toast(message, type = "ok") {
+        const root = $("toast-root");
+        root.innerHTML = `<div class="toast ${type}">${esc(message)}</div>`;
+        clearTimeout(toast.timer);
+        toast.timer = setTimeout(() => (root.innerHTML = ""), 2800);
+      }
+      function setAuthMode(mode) {
+        state.authMode = mode;
+        const register = mode === "register";
+        $("login-tab").classList.toggle("active", !register);
+        $("register-tab").classList.toggle("active", register);
+        $("register-fields").hidden = !register;
+        $("auth-title").textContent = register
+          ? "Створи акаунт"
+          : "З поверненням";
+        $("auth-subtitle").textContent = register
+          ? "Почни колекцію та створи свій профіль."
+          : "Увійди, щоб продовжити свою колекцію.";
+        $("auth-submit").textContent = register ? "Зареєструватися" : "Увійти";
+        $("auth-password").autocomplete = register
+          ? "new-password"
+          : "current-password";
+        $("auth-error").textContent = "";
+      }
+      function showAuth() {
+        $("app").hidden = true;
+        $("hud").innerHTML = "";
+        $("auth").hidden = false;
+      }
+      function showApp() {
+        $("auth").hidden = true;
+        $("app").hidden = false;
+      }
+      $("auth-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const error = $("auth-error"),
+          button = $("auth-submit");
+        error.textContent = "";
+        button.disabled = true;
+        button.textContent =
+          state.authMode === "register" ? "Створюємо…" : "Входимо…";
+        try {
+          const body =
+            state.authMode === "register"
+              ? {
+                  email: $("auth-email").value,
+                  password: $("auth-password").value,
+                  display_name: $("auth-name").value,
+                  handle: $("auth-handle").value,
+                }
+              : {
+                  email: $("auth-email").value,
+                  password: $("auth-password").value,
+                };
+          await api(`/api/auth/${state.authMode}`, {
+            method: "POST",
+            body: JSON.stringify(body),
+          });
+          await boot();
+        } catch (e) {
+          error.textContent = e.message;
+        } finally {
+          button.disabled = false;
+          button.textContent =
+            state.authMode === "register" ? "Зареєструватися" : "Увійти";
+        }
+      });
+      async function boot() {
+        try {
+          await api("/api/me");
+          showApp();
+          await loadGame();
+          const target = new URLSearchParams(location.search).get("profile");
+          if (target) {
+            state.profileTarget = target;
+            await go("profile");
+          } else go(state.view);
+        } catch {
+          showAuth();
+        }
+      }
+      async function loadGame() {
+        state.game = await api("/api/game");
+        renderChrome();
+        renderHud();
+        if (!state.profileTarget && state.profile?.isOwner)
+          state.profile = null;
+      }
+      function renderChrome() {
+        if (!state.game) return;
+        const p = state.game.player;
+        $("top-coins").textContent = compact(p.coins);
+        $("top-name").textContent = p.displayName;
+        $("top-handle").textContent = "@" + p.handle;
+        $("top-avatar").innerHTML = avatarMarkup(p.avatarUrl, p.displayName);
+        $("side-luck").textContent = formatLuck(p.luck);
+        $("side-dice").textContent = state.game.equippedDice?.name || "—";
+        $("side-income").textContent = money(p.totalIncomePerSecond) + "/s";
+        $("side-index").textContent = `${p.uniqueOwned}/${p.totalCards}`;
+        const event = state.game.events.find((x) => x.isLive),
+          top = $("top-event");
+        top.innerHTML = event
+          ? `<i class="live-dot"></i><strong>ІВЕНТ</strong><span>${esc(event.name)}</span>`
+          : `<i class="live-dot" style="background:var(--faint)"></i><strong>ІВЕНТИ</strong><span>Немає активних</span>`;
+        renderNav();
+      }
+      function renderNav() {
+        const items = [...navBase];
+        if (state.game?.player.isAdmin)
+          items.push(["admin", "⚙", "Admin Studio"]);
+        $("nav").innerHTML = items
+          .map(
+            ([id, icon, label]) =>
+              `<button class="nav-button ${state.view === id ? "active" : ""}" onclick="go('${id}')"><span class="nav-icon">${icon}</span><span>${label}</span></button>`,
+          )
+          .join("");
+      }
+      async function go(view) {
+        state.view = view;
+        renderNav();
+        if (view === "profile") {
+          await loadProfile(state.profileTarget);
+          return;
+        }
+        if (view === "admin" && !state.admin) {
+          $("main").innerHTML = loading();
+          try {
+            state.admin = await api("/api/admin");
+          } catch (e) {
+            toast(e.message, "error");
+            state.view = "home";
+          }
+        }
+        render();
+      }
+      function openOwnProfile() {
+        state.profileTarget = null;
+        history.replaceState(null, "", location.pathname);
+        go("profile");
+      }
+      function loading(text = "Завантаження…") {
+        return `<div class="loading"><div><div class="spinner"></div>${esc(text)}</div></div>`;
+      }
+      function pageHead(eyebrow, title, description, actions = "") {
+        return `<header class="page-head"><div><span class="eyebrow">${esc(eyebrow)}</span><h1>${esc(title)}</h1><p>${esc(description)}</p></div>${actions ? `<div class="page-actions">${actions}</div>` : ""}</header>`;
+      }
+      function gameCard(card, options = {}) {
+        const owned = options.owned || 0,
+          locked = options.locked ?? !card.availableNow,
+          chanceCard =
+            state.game?.cards?.find(
+              (item) => item.id === (card.cardId || card.id),
+            ) || card;
+        return `<article class="game-card ${locked ? "locked" : ""}" style="--rarity:${esc(options.color || card.rarityColor)}">${art(card)}${card.eventOnly ? '<span class="card-badge">EVENT</span>' : ""}${owned ? `<span class="owned-badge">×${owned}</span>` : ""}${locked ? '<div class="locked-overlay"><span>НЕ ВІДКРИТО</span></div>' : ""}<div class="card-body"><div class="rarity-row"><i></i><span>${esc(options.label || card.rarityName)}</span><span>${chance(chanceCard)}</span></div><h3>${esc(card.name)}</h3><p>${esc(card.subtitle)}</p><div class="card-meta"><span><b>${money(Number(card.incomePerSecond) * (options.multiplier || 1))}</b>/s</span><span>Tier ${card.rarityTier}</span></div></div></article>`;
+      }
+      function render() {
+        if (!state.game) return;
+        $("main").innerHTML =
+          `<div class="page">${({ home: renderHome, roll: renderRoll, dice: renderDice, index: renderIndex, collection: renderCollection, potions: renderPotions, events: renderEvents, admin: renderAdmin }[state.view] || renderHome)()}</div>`;
+        renderHud();
+      }
+      function renderHome() {
+        const g = state.game,
+          p = g.player,
+          event = g.events.find((x) => x.isLive),
+          champ = g.hourlyChampion;
+        const topCards = g.cards.filter((x) => x.availableNow).slice(0, 4);
+        return `${pageHead("Anime RNG", "Головна", `Рівень ${p.level} · ${compact(p.rolls)} ролів · Luck ${formatLuck(p.luck)}`)}<div class="home-grid"><section class="panel hero-panel"><div class="hero-copy"><span class="eyebrow">${event ? "Активний івент" : "Постійний пул"}</span><h2>${event ? esc(event.name) : "Куб готовий до нового ролу"}</h2><p>${event ? esc(event.description) : "Роль, збирай картки, заробляй Rift Credits і відкривай сильніші кубики."}</p><div class="hero-actions"><button class="primary" onclick="go('roll')">Зробити рол</button><button class="ghost" onclick="go('dice')">Кубики та прокачка</button></div></div><div class="hero-art">${diceMarkup(g.equippedDice)}<div class="hero-badge"><b>${esc(g.equippedDice?.name || "Origin Cube")} · LVL ${g.equippedDice?.level || 1}</b>${formatLuck(g.equippedDice?.currentLuck || 1)} базового luck</div></div></section><div class="stats-grid"><div class="stat-card"><span>Колекція</span><strong>${p.uniqueOwned}/${p.totalCards}</strong><small>унікальних карток</small></div><div class="stat-card"><span>Дохід</span><strong>${money(p.totalIncomePerSecond)}/s</strong><small>пасивно з колекції</small></div><div class="stat-card"><span>Luck</span><strong>${formatLuck(p.luck)}</strong><small>кубик × активні зілля</small></div><div class="stat-card"><span>Баланс</span><strong>${money(p.coins)}</strong><small>rift credits</small></div></div></div><section class="wide-section"><div class="section-head"><div><h2>Roll of the Hour</h2><p>Найрідкісніше глобальне випадіння поточної години.</p></div><span class="eyebrow">оновлення через ${remaining(g.hourEndsAt)}</span></div>${champ ? `<article class="panel hour-card" style="--rarity:${esc(champ.mutationColor || champ.rarityColor)}"><div class="hour-art">${art(champ)}</div><div class="hour-copy"><small>@${esc(champ.playerHandle)} · ${esc(champ.playerName)}</small><h3>${esc(champ.name)}</h3><p><b>${esc(champ.mutationName || champ.rarityName)}</b> · Luck ${formatLuck(champ.effectiveLuck)}</p></div><div class="hour-odds"><strong>1 / ${compact(Math.round(champ.oddsDenominator))}</strong><span>${money(champ.incomePerSecond)}/s</span></div></article>` : `<div class="empty"><strong>Цього часу ще ніхто не ролив</strong>Перший сильний рол одразу з’явиться тут.</div>`}</section><section class="wide-section"><div class="section-head"><div><h2>Активний пул</h2><p>Картки з найвищими рівнями рідкості, доступні зараз.</p></div><button class="text-button" onclick="go('index')">Дивитися весь Index</button></div><div class="card-grid">${topCards.map((c) => gameCard(c, { locked: false })).join("")}</div></section>`;
+      }
+      function renderRoll() {
+        const g = state.game;
+        return `${pageHead("Основний цикл", "Крутка", `${g.equippedDice?.name || "Кубик"} · рівень ${g.equippedDice?.level || 1} · ${formatLuck(g.player.luck)}`)}<div class="roll-layout"><section id="roll-stage" class="panel roll-stage ${state.rolling ? "rolling" : ""}">${state.result && !state.rolling ? `<div class="roll-result">${gameCard(state.result, { locked: false, label: state.result.mutation?.name || state.result.rarityName, color: state.result.mutation?.color || state.result.rarityColor, multiplier: state.result.mutation?.incomeMultiplier || 1 })}<div class="result-note"><b>${(state.result.adjustedChance * 100).toFixed(6)}%</b> · Luck ${formatLuck(state.result.effectiveLuck)} · +${state.result.xpEarned} XP · +${money(state.result.coinsEarned)}</div></div><button class="roll-button" style="margin-top:18px" onclick="doRoll()">КРУТИТИ ЩЕ</button>` : `${diceMarkup(g.equippedDice)}<div class="roll-copy"><h2>${state.rolling ? "Кубик обертається" : "Куб готовий"}</h2><p>${state.rolling ? "Результат визначається на сервері" : `${esc(g.equippedDice?.name || "Origin Cube")} · Luck ${formatLuck(g.player.luck)} · Speed ${Number(g.player.speed).toFixed(2)}×`}</p></div><button class="roll-button" onclick="doRoll()" ${state.rolling ? "disabled" : ""}>${state.rolling ? "КРУТИМО…" : "КРУТИТИ"}</button>`}</section><aside class="roll-side"><section class="panel side-panel"><h3>Поточний кубик</h3><div class="sidebar-stat"><span>Назва</span><b>${esc(g.equippedDice?.name || "—")}</b></div><div class="sidebar-stat"><span>Рівень</span><b>${g.equippedDice?.level || 1}/${g.equippedDice?.maxLevel || 1}</b></div><div class="sidebar-stat"><span>Luck кубика</span><b>${formatLuck(g.player.diceLuck)}</b></div><div class="sidebar-stat"><span>Зілля</span><b>${formatLuck(g.player.potionLuck)}</b></div><button class="ghost" style="width:100%;margin-top:10px" onclick="go('dice')">Кубики та прокачка</button></section><section class="panel side-panel"><h3>Останні роли</h3><div class="side-list">${g.history.length ? g.history.map((h) => `<div class="history-row"><div class="history-thumb">${art(h)}</div><span><strong>${esc(h.name)}</strong><small style="color:${esc(h.mutationColor || h.rarityColor)}">${esc(h.mutationName || h.rarityName)}</small></span><span>${new Date(h.rolledAt).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}</span></div>`).join("") : '<small style="color:var(--muted)">Історія порожня.</small>'}</div></section></aside></div>`;
+      }
+      async function doRoll() {
+        if (state.rolling) return;
+        state.view = "roll";
+        state.rolling = true;
+        state.result = null;
+        render();
+        const started = Date.now();
+        try {
+          const data = await api("/api/roll", { method: "POST" });
+          await new Promise((r) =>
+            setTimeout(r, Math.max(0, 1250 - (Date.now() - started))),
+          );
+          state.game = data.snapshot;
+          state.result = data.result;
+          renderChrome();
+        } catch (e) {
+          toast(
+            e.retry
+              ? `Куб заряджається ще ${(e.retry / 1000).toFixed(1)}с`
+              : e.message,
+            "error",
+          );
+        } finally {
+          state.rolling = false;
+          render();
+        }
+      }
+      function renderDice() {
+        const g = state.game,
+          p = g.player;
+        const cards = g.dice
+          .map((die) => {
+            const levelProgress = die.owned
+              ? Math.min(100, (die.level / die.maxLevel) * 100)
+              : 0;
+            let actions = "";
+            if (!die.owned) {
+              const levelLocked = p.level < die.requiredLevel;
+              const moneyLocked = p.coins < die.unlockCost;
+              const label = levelLocked
+                ? `Потрібен рівень ${die.requiredLevel}`
+                : `Відкрити · ${money(die.unlockCost)}`;
+              actions = `<div class="dice-actions single"><button class="primary" onclick="diceAction('buy',${die.id})" ${levelLocked || moneyLocked ? "disabled" : ""}>${label}</button></div>`;
+            } else {
+              actions = `<div class="dice-actions"><button class="${die.isEquipped ? "ghost" : "primary"}" onclick="diceAction('equip',${die.id})" ${die.isEquipped ? "disabled" : ""}>${die.isEquipped ? "Використовується" : "Обрати"}</button><button class="ghost" onclick="diceAction('upgrade',${die.id})" ${die.nextUpgradeCost === null || p.coins < die.nextUpgradeCost ? "disabled" : ""}>${die.nextUpgradeCost === null ? "MAX LEVEL" : `Прокачати · ${money(die.nextUpgradeCost)}`}</button></div>`;
+            }
+            return `<article class="panel dice-card ${die.isEquipped ? "equipped" : ""}" style="--face:${esc(die.faceColor)}"><div class="dice-visual">${diceMarkup(die, true)}</div><div class="dice-card-body"><div class="dice-card-head"><div><span class="eyebrow">${die.isEquipped ? "Обраний кубик" : die.owned ? "Відкрито" : `Рівень ${die.requiredLevel}`}</span><h3>${esc(die.name)}</h3></div><span class="dice-level">${die.owned ? `LVL ${die.level}` : "LOCKED"}</span></div><p>${esc(die.description)}</p><div class="dice-stats"><div><span>Luck зараз</span><b>${formatLuck(die.currentLuck)}</b></div><div><span>Базовий luck</span><b>${formatLuck(die.baseLuck)}</b></div></div>${die.owned ? `<span class="dice-progress-label">Прогрес кубика · ${die.level}/${die.maxLevel}</span><div class="dice-progress"><i style="width:${levelProgress}%"></i></div>` : `<span class="dice-progress-label">Вартість · ${money(die.unlockCost)}</span><div class="dice-progress"><i style="width:${Math.min(100, (p.level / die.requiredLevel) * 100)}%"></i></div>`}${actions}</div></article>`;
+          })
+          .join("");
+        return `${pageHead("Прогресія", "Кубики та прокачка", `Баланс ${money(p.coins)} · поточний luck ${formatLuck(p.luck)}`, '<button class="primary" onclick="go(\'roll\')">До крутки</button>')}<div class="dice-grid">${cards}</div>`;
+      }
+      async function diceAction(action, id) {
+        try {
+          const data = await api(`/api/dice/${id}/${action}`, {
+            method: "POST",
+          });
+          state.game = data.snapshot;
+          renderChrome();
+          render();
+          toast(
+            action === "buy"
+              ? "Кубик відкрито."
+              : action === "equip"
+                ? "Кубик обрано."
+                : "Рівень кубика підвищено.",
+          );
+        } catch (e) {
+          toast(e.message, "error");
+        }
+      }
+      function ownedVariant(cardId, key) {
+        return state.game.inventory.find(
+          (x) => x.cardId === cardId && x.mutationKey === String(key),
+        );
+      }
+      function renderIndex() {
+        const g = state.game,
+          mutations = [
+            {
+              id: "base",
+              name: "Normal",
+              color: "#949ba4",
+              incomeMultiplier: 1,
+            },
+            ...g.mutations,
+          ];
+        const selected =
+          mutations.find((x) => String(x.id) === String(state.indexMutation)) ||
+          mutations[0];
+        const visible = g.cards.filter(
+          (card) =>
+            selected.id === "base" ||
+            card.mutationIds.includes(Number(selected.id)),
+        );
+        const owned = visible.filter((card) =>
+          ownedVariant(card.id, selected.id),
+        ).length;
+        return `${pageHead("Каталог знахідок", "Index", "Невідкриті картки приховані, але їхня позиція в каталозі залишається видимою.")}<div class="filters"><div class="filter-group">${mutations.map((m) => `<button class="${String(state.indexMutation) === String(m.id) ? "active" : ""}" onclick="state.indexMutation='${m.id}';render()">${esc(m.name)}</button>`).join("")}</div><span class="progress-line"><b>${owned}/${visible.length}</b> відкрито</span></div><div class="card-grid">${visible
+          .map((card) => {
+            const item = ownedVariant(card.id, selected.id);
+            return gameCard(card, {
+              locked: !item,
+              owned: item?.quantity || 0,
+              label: selected.id === "base" ? card.rarityName : selected.name,
+              color: selected.id === "base" ? card.rarityColor : selected.color,
+              multiplier: selected.incomeMultiplier,
+            });
+          })
+          .join("")}</div>`;
+      }
+      function setCollectionSearch(value) {
+        state.search = value;
+        render();
+      }
+      function setRarity(value) {
+        state.rarity = value;
+        render();
+      }
+      function renderCollection() {
+        const g = state.game,
+          rarities = [...new Set(g.inventory.map((x) => x.rarityName))];
+        const q = state.search.toLowerCase();
+        const list = g.inventory.filter(
+          (x) =>
+            (state.rarity === "all" || x.rarityName === state.rarity) &&
+            `${x.name} ${x.mutationName || ""}`.toLowerCase().includes(q),
+        );
+        return `${pageHead("Твій інвентар", "Колекція", `${g.inventory.length} відкритих варіантів · ${compact(g.inventory.reduce((s, x) => s + x.quantity, 0))} карток загалом`, '<button class="primary" onclick="go(\'roll\')">Новий рол</button>')}<div class="filters"><input class="search" value="${esc(state.search)}" oninput="setCollectionSearch(this.value)" placeholder="Знайти картку або мутацію…"><select class="toolbar-input" style="max-width:180px" onchange="setRarity(this.value)"><option value="all">Усі рідкості</option>${rarities.map((r) => `<option ${state.rarity === r ? "selected" : ""}>${esc(r)}</option>`).join("")}</select></div>${list.length ? `<div class="card-grid">${list.map((item) => gameCard({ ...item, availableNow: true, baseWeight: state.game.cards.find((c) => c.id === item.cardId)?.baseWeight || 1 }, { locked: false, owned: item.quantity, label: item.mutationName || item.rarityName, color: item.mutationColor || item.rarityColor, multiplier: item.incomeMultiplier })).join("")}</div>` : `<div class="empty"><strong>Нічого не знайдено</strong>Зміни фільтр або зроби ще кілька ролів.</div>`}`;
+      }
+      async function loadProfile(target) {
+        state.profileTarget = target || null;
+        $("main").innerHTML = loading("Відкриваємо профіль…");
+        try {
+          state.profile = await api(
+            "/api/profile" +
+              (target ? `?handle=${encodeURIComponent(target)}` : ""),
+          );
+          state.profilePage = 0;
+          state.editingShowcase = false;
+          renderProfile();
+        } catch (e) {
+          $("main").innerHTML =
+            `<div class="page"><div class="empty"><strong>Профіль не відкрився</strong>${esc(e.message)}</div></div>`;
+        }
+      }
+      function renderProfile() {
+        const data = state.profile;
+        if (!data) return;
+        state.view = "profile";
+        renderNav();
+        const p = data.profile,
+          slots = new Map(
+            data.showcase
+              .filter((x) => x.pageIndex === state.profilePage)
+              .map((x) => [x.slotIndex, x]),
+          );
+        const profileCard = `<aside class="panel profile-card" style="--accent:${esc(p.accent)}"><div class="profile-banner"></div><div class="profile-avatar">${avatarMarkup(p.avatarUrl, p.displayName)}</div><div class="profile-info"><h2>${esc(p.displayName)}</h2><span class="profile-handle">@${esc(p.handle)}</span><div class="profile-badges"><span title="Rift Roll">R</span>${p.level >= 10 ? '<span title="Рівень 10+">X</span>' : ""}${p.uniqueOwned >= 5 ? '<span title="Колекціонер">◆</span>' : ""}</div><div class="profile-about"><h3>ПРО МЕНЕ</h3><p>${esc(p.bio || "Ще не залишив опис профілю.")}</p></div><div class="profile-stats"><div><strong>${p.level}</strong><span>Рівень</span></div><div><strong>${compact(p.rolls)}</strong><span>Ролів</span></div><div><strong>${p.uniqueOwned}</strong><span>Карток</span></div></div><div class="profile-joined"><span>ОБРАНИЙ КУБИК</span><b>${esc(p.equippedDice?.name || "Origin Cube")} · ${formatLuck(p.equippedDice?.currentLuck || 1)}</b></div><div class="profile-joined"><span>У RIFT ROLL З</span><b>${dateText(p.joinedAt)}</b></div>${data.isOwner ? `<div class="profile-actions"><button class="primary" onclick="openProfileEdit()">Редагувати профіль</button><button class="ghost" onclick="logout()">Вийти з акаунта</button></div>` : ""}</div></aside>`;
+        const showcase = `<section class="panel showcase"><div class="showcase-head"><div><span class="eyebrow">32 місця · 4 сторінки</span><h2>Вибрані картки</h2><p>${data.isOwner ? "Покажи іншим найкращі знахідки зі свого інвентарю." : `${p.ownedVariants} варіантів у колекції.`}</p></div>${data.isOwner ? `<button class="${state.editingShowcase ? "primary" : "ghost"}" onclick="state.editingShowcase=!state.editingShowcase;renderProfile()">${state.editingShowcase ? "Готово" : "Змінити вітрину"}</button>` : ""}</div><div class="showcase-tabs">${[0, 1, 2, 3].map((i) => `<button class="${state.profilePage === i ? "active" : ""}" onclick="state.profilePage=${i};renderProfile()">Вітрина ${i + 1} · ${data.showcase.filter((x) => x.pageIndex === i).length}/8</button>`).join("")}</div><div class="showcase-grid">${Array.from({ length: 8 }, (_, i) => showcaseSlot(slots.get(i), i, data.isOwner)).join("")}</div><footer class="showcase-footer"><span><b>${p.ownedVariants}</b> варіантів</span><span><b>${money(p.totalIncomePerSecond)}/s</b> дохід</span><span><b>${p.uniqueOwned}/${p.totalCards}</b> Index</span></footer></section>`;
+        const actions = `${!data.isOwner ? '<button class="ghost" onclick="openOwnProfile()">Мій профіль</button>' : ""}<button class="ghost" onclick="openPlayers()">Знайти гравця</button><button class="ghost" onclick="shareProfile()">Поділитися</button>`;
+        $("main").innerHTML =
+          `<div class="page">${pageHead("Публічний профіль", data.isOwner ? "Твоя вітрина" : `Вітрина ${p.displayName}`, data.isOwner ? "Обери до 32 карток: 4 сторінки по 8 слотів." : `@${p.handle} · ${compact(p.rolls)} ролів`, actions)}<div class="profile-layout">${profileCard}${showcase}</div></div>`;
+        renderHud();
+      }
+      function showcaseSlot(item, slot, isOwner) {
+        if (!item)
+          return `<button class="showcase-slot empty-slot ${state.editingShowcase && isOwner ? "editing" : ""}" ${state.editingShowcase && isOwner ? `onclick="openPicker(${slot})"` : ""}><span>${state.editingShowcase && isOwner ? "+" : "◇"}</span><small>${state.editingShowcase && isOwner ? "Додати картку" : `Порожній слот ${slot + 1}`}</small></button>`;
+        return `<article class="showcase-slot" style="--rarity:${esc(item.mutationColor || item.rarityColor)}"><div class="slot-art">${art(item)}<span>×${item.quantity}</span></div><div class="slot-body"><small>${esc(item.mutationName || item.rarityName)}</small><strong>${esc(item.name)}</strong><span>${money(item.incomePerSecond * item.incomeMultiplier)}/s</span></div>${state.editingShowcase && isOwner ? `<div class="slot-edit"><button onclick="openPicker(${slot})">Замінити</button><button onclick="clearSlot(${slot})">×</button></div>` : ""}</article>`;
+      }
+      function openProfileEdit() {
+        const p = state.profile.profile;
+        openModal(
+          `<div class="modal-head"><div><h2>Редагувати профіль</h2><p>Аватар одразу завантажується у хмарне сховище.</p></div><button class="close" onclick="closeModal()">×</button></div><form id="profile-form" class="modal-body"><div class="form-stack"><div class="upload-box"><div class="upload-preview round">${avatarMarkup(p.avatarUrl, p.displayName)}</div><div class="upload-copy"><label class="file-button">Вибрати аватар<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onchange="uploadAvatar(this.files[0])"></label><small id="avatar-upload-status">JPG, PNG, WEBP або GIF · до 8 МБ</small></div></div><label class="field"><span>Ім’я</span><input name="display_name" value="${esc(p.displayName)}" maxlength="32" required></label><label class="field"><span>Handle</span><input name="handle" value="${esc(p.handle)}" maxlength="20" required></label><label class="field"><span>Про себе</span><textarea name="bio" maxlength="190">${esc(p.bio)}</textarea></label></div><div class="modal-actions"><button type="button" class="ghost" onclick="closeModal()">Скасувати</button><button class="primary">Зберегти</button></div></form>`,
+        );
+        $("profile-form").onsubmit = saveProfile;
+      }
+      async function uploadAvatar(file) {
+        if (!file) return;
+        const status = $("avatar-upload-status");
+        if (file.size > 8 * 1024 * 1024) {
+          toast("Максимальний розмір — 8 МБ.", "error");
+          return;
+        }
+        if (status) status.textContent = "Завантажуємо й оптимізуємо…";
+        const body = new FormData();
+        body.append("file", file);
+        try {
+          state.profile = await api("/api/profile/avatar", {
+            method: "POST",
+            body,
+          });
+          state.game.player.avatarUrl = state.profile.profile.avatarUrl;
+          renderChrome();
+          renderProfile();
+          openProfileEdit();
+          toast("Аватар оновлено.");
+        } catch (e) {
+          if (status) status.textContent = e.message;
+          toast(e.message, "error");
+        }
+      }
+      async function saveProfile(event) {
+        event.preventDefault();
+        const f = new FormData(event.target);
+        try {
+          state.profile = await api("/api/profile", {
+            method: "PATCH",
+            body: JSON.stringify(Object.fromEntries(f)),
+          });
+          state.game.player.displayName = state.profile.profile.displayName;
+          state.game.player.handle = state.profile.profile.handle;
+          state.game.player.bio = state.profile.profile.bio;
+          closeModal();
+          renderChrome();
+          renderProfile();
+          toast("Профіль збережено.");
+        } catch (e) {
+          toast(e.message, "error");
+        }
+      }
+      function openPicker(slot) {
+        const list = state.profile.inventoryOptions;
+        openModal(
+          `<div class="modal-head"><div><h2>Вибери картку</h2><p>Вітрина ${state.profilePage + 1} · слот ${slot + 1}</p></div><button class="close" onclick="closeModal()">×</button></div><div class="modal-body"><input id="picker-search" class="search" style="max-width:none" placeholder="Назва, рідкість або мутація…" oninput="filterPicker(${slot})"><div id="picker-grid" class="picker-grid">${pickerCards(list, slot)}</div></div>`,
+          "wide",
+        );
+      }
+      function pickerCards(list, slot) {
+        return (
+          list
+            .map(
+              (item) =>
+                `<button class="picker-card" style="--rarity:${esc(item.mutationColor || item.rarityColor)}" onclick="setSlot(${slot},${item.id})"><div class="picker-thumb">${art(item)}</div><span class="picker-copy"><small>${esc(item.mutationName || item.rarityName)} · ×${item.quantity}</small><strong>${esc(item.name)}</strong></span></button>`,
+            )
+            .join("") ||
+          '<div class="empty" style="grid-column:1/-1">У колекції ще немає карток.</div>'
+        );
+      }
+      function filterPicker(slot) {
+        const q = $("picker-search").value.toLowerCase();
+        $("picker-grid").innerHTML = pickerCards(
+          state.profile.inventoryOptions.filter((x) =>
+            `${x.name} ${x.rarityName} ${x.mutationName || ""}`
+              .toLowerCase()
+              .includes(q),
+          ),
+          slot,
+        );
+      }
+      async function setSlot(slot, inventoryId) {
+        try {
+          state.profile = await api("/api/profile/showcase", {
+            method: "PUT",
+            body: JSON.stringify({
+              page_index: state.profilePage,
+              slot_index: slot,
+              inventory_id: inventoryId,
+            }),
+          });
+          closeModal();
+          renderProfile();
+          toast("Картку додано до вітрини.");
+        } catch (e) {
+          toast(e.message, "error");
+        }
+      }
+      async function clearSlot(slot) {
+        try {
+          state.profile = await api("/api/profile/showcase", {
+            method: "PUT",
+            body: JSON.stringify({
+              page_index: state.profilePage,
+              slot_index: slot,
+              inventory_id: null,
+            }),
+          });
+          renderProfile();
+          toast("Слот очищено.");
+        } catch (e) {
+          toast(e.message, "error");
+        }
+      }
+      function openPlayers() {
+        openModal(
+          `<div class="modal-head"><div><h2>Профілі гравців</h2><p>Пошук за ім’ям або @handle.</p></div><button class="close" onclick="closeModal()">×</button></div><div class="modal-body"><input id="player-search" class="search" style="max-width:none" placeholder="Почни вводити…" oninput="debouncedPlayers()"><div id="player-list" class="player-list">${loading()}</div></div>`,
+        );
+        loadPlayers();
+      }
+      let playerTimer;
+      function debouncedPlayers() {
+        clearTimeout(playerTimer);
+        playerTimer = setTimeout(loadPlayers, 180);
+      }
+      async function loadPlayers() {
+        try {
+          const data = await api(
+            "/api/players?q=" +
+              encodeURIComponent($("player-search")?.value || ""),
+          );
+          $("player-list").innerHTML =
+            data.players
+              .map(
+                (p) =>
+                  `<button class="player-row" onclick="visitPlayer('${esc(p.handle)}',${p.isViewer})"><span class="avatar">${avatarMarkup(p.avatarUrl, p.displayName)}</span><span><strong>${esc(p.displayName)}</strong><small>@${esc(p.handle)}</small></span><span>LVL ${p.level}<br>${compact(p.rolls)} ролів</span></button>`,
+              )
+              .join("") || '<div class="empty">Нікого не знайдено.</div>';
+        } catch (e) {
+          toast(e.message, "error");
+        }
+      }
+      function visitPlayer(handle, isViewer) {
+        closeModal();
+        state.profileTarget = isViewer ? null : handle;
+        history.replaceState(
+          null,
+          "",
+          isViewer
+            ? location.pathname
+            : `?profile=${encodeURIComponent(handle)}`,
+        );
+        loadProfile(state.profileTarget);
+      }
+      async function shareProfile() {
+        const url = `${location.origin}${location.pathname}?profile=${encodeURIComponent(state.profile.profile.handle)}`;
+        try {
+          await navigator.clipboard.writeText(url);
+          toast("Посилання скопійовано.");
+        } catch {
+          prompt("Скопіюй посилання", url);
+        }
+      }
+      async function logout() {
+        await api("/api/auth/logout", { method: "POST" });
+        state.game = null;
+        state.profile = null;
+        closeModal();
+        showAuth();
+        toast("Ти вийшов з акаунта.");
+      }
+      function renderPotions() {
+        const g = state.game;
+        return `${pageHead("Тимчасові бусти", "Зілля", "Активуй вручну. Ефекти з однаковим типом перемножуються, а час однакового зілля продовжується.")}<div class="potion-grid">${g.potions.map((p) => `<article class="panel potion-card" style="--potion:${esc(p.color)}"><div class="potion-icon">⚗</div><h3>${esc(p.name)}</h3><p>${esc(p.description)}</p><div class="potion-meta"><span>${p.effectType === "luck" ? "Luck" : "Speed"} <b>${p.multiplier}×</b></span><span>${Math.round(p.durationSeconds / 60)} хв</span></div><button class="${p.activeUntil && new Date(p.activeUntil) > state.now ? "ghost" : "primary"}" onclick="usePotion(${p.id})" ${p.quantity < 1 ? "disabled" : ""}>${p.activeUntil && new Date(p.activeUntil) > state.now ? `Активне · ${remaining(p.activeUntil)}` : `Активувати · ×${p.quantity}`}</button></article>`).join("")}</div>`;
+      }
+      async function usePotion(id) {
+        try {
+          const data = await api(`/api/potions/${id}/use`, { method: "POST" });
+          state.game = data.snapshot;
+          renderChrome();
+          render();
+          toast("Зілля активовано.");
+        } catch (e) {
+          toast(e.message, "error");
+        }
+      }
+      function renderEvents() {
+        const events = state.game.events;
+        return `${pageHead("Обмежені випадіння", "Івенти", "Активні події автоматично додають прив’язані картки й мутації до пулу.")}<div class="event-grid">${events.map((e) => `<article class="panel event-card" style="--event:${esc(e.accent)}"><span class="status ${e.isLive ? "live" : ""}"><i></i>${e.isLive ? "Активний" : e.status === "scheduled" ? "Запланований" : "Призупинений"}</span><h3>${esc(e.name)}</h3><p>${esc(e.description)}</p><div class="event-meta"><span>${e.startAt ? dateText(e.startAt) : "Ручний запуск"}</span><b>${e.isLive && e.endAt ? remaining(e.endAt) : e.status}</b></div></article>`).join("")}</div>`;
+      }
+      function renderAdmin() {
+        if (!state.game.player.isAdmin)
+          return '<div class="empty">Немає доступу.</div>';
+        const data = state.admin,
+          kind = state.adminTab,
+          labels = {
+            cards: "Картки",
+            dice: "Кубики",
+            mutations: "Мутації",
+            events: "Івенти",
+            potions: "Зілля",
+          };
+        return `${pageHead("Керування без коду", "Admin Studio", "Зміни одразу зберігаються в Aiven PostgreSQL.", `<button class="primary" onclick="openAdminForm('${kind}')">Додати</button>`)}<div class="admin-tabs">${Object.entries(
+          labels,
+        )
+          .map(
+            ([id, label]) =>
+              `<button class="${kind === id ? "active" : ""}" onclick="state.adminTab='${id}';render()">${label} · ${data[id].length}</button>`,
+          )
+          .join(
+            "",
+          )}</div><div class="admin-list">${data[kind].map((item) => adminRow(kind, item)).join("") || '<div class="empty">Поки порожньо.</div>'}</div>`;
+      }
+      function adminRow(kind, item) {
+        let meta = "",
+          color =
+            item.rarityColor ||
+            item.faceColor ||
+            item.color ||
+            item.accent ||
+            "#949ba4";
+        if (kind === "cards")
+          meta = `${item.rarityName} · weight ${item.baseWeight} · ${money(item.incomePerSecond)}/s`;
+        if (kind === "dice")
+          meta = `${formatLuck(item.baseLuck)} base · ${money(item.unlockCost)} · max LVL ${item.maxLevel}`;
+        if (kind === "mutations")
+          meta = `${(item.chance * 100).toFixed(3)}% · income ${item.incomeMultiplier}×`;
+        if (kind === "events")
+          meta = `${item.isLive ? "Активний" : item.status} · ${item.startAt ? dateText(item.startAt) : "ручний"}`;
+        if (kind === "potions")
+          meta = `${item.effectType} ${item.multiplier}× · ${Math.round(item.durationSeconds / 60)} хв`;
+        return `<article class="admin-row"><div class="admin-row-main"><i class="admin-swatch" style="--swatch:${esc(color)}"></i><span><strong>${esc(item.name)}</strong><small>${esc(meta)}</small></span></div><div class="admin-row-actions">${kind === "events" ? `<button class="small-button" onclick="toggleAdminEvent(${item.id})">${item.isLive ? "Стоп" : "Запустити"}</button>` : ""}<button class="small-button" onclick="openAdminForm('${kind}',${item.id})">Редагувати</button><button class="danger" onclick="deleteAdmin('${kind}',${item.id})">Видалити</button></div></article>`;
+      }
+      function eventOptions(selected) {
+        return `<option value="">Без івенту</option>${state.admin.events.map((e) => `<option value="${e.id}" ${Number(selected) === e.id ? "selected" : ""}>${esc(e.name)}</option>`).join("")}`;
+      }
+      function openAdminForm(kind, id = null) {
+        const item = id ? state.admin[kind].find((x) => x.id === id) : null;
+        let body = "";
+        if (kind === "cards") body = cardForm(item);
+        if (kind === "dice") body = diceForm(item);
+        if (kind === "mutations") body = mutationForm(item);
+        if (kind === "events") body = eventForm(item);
+        if (kind === "potions") body = potionForm(item);
+        openModal(
+          `<div class="modal-head"><div><h2>${item ? "Редагувати" : "Додати"} ${kind === "cards" ? "картку" : kind === "dice" ? "кубик" : kind === "mutations" ? "мутацію" : kind === "events" ? "івент" : "зілля"}</h2><p>Збереження одразу змінить ігрові дані.</p></div><button class="close" onclick="closeModal()">×</button></div><form id="admin-form" class="modal-body">${body}<div class="modal-actions"><button type="button" class="ghost" onclick="closeModal()">Скасувати</button><button class="primary">Зберегти</button></div></form>`,
+          "wide",
+        );
+        $("admin-form").onsubmit = (e) => saveAdmin(e, kind, id);
+      }
+      const checked = (v) => (v ? "checked" : "");
+      function adminMediaField(value, purpose, inputName, label) {
+        const src = safeImage(value);
+        return `<div class="upload-box"><div id="admin-media-preview" class="upload-preview">${src ? `<img src="${src}" alt="${esc(label)}">` : "IMG"}</div><div class="upload-copy"><label class="file-button">Завантажити з пристрою<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onchange="uploadAdminAsset(this.files[0],'${purpose}','admin-media-url','admin-media-preview')"></label><small id="admin-upload-status">Файл конвертується у WEBP, у базі зберігається URL.</small></div></div><label class="field"><span>${esc(label)} · URL</span><input id="admin-media-url" name="${inputName}" value="${esc(value || "")}" placeholder="Заповниться після завантаження" oninput="previewAdminMedia(this.value,'admin-media-preview')"></label>`;
+      }
+      function cardForm(x = {}) {
+        return `<div class="form-stack"><div class="form-row"><label class="field"><span>Назва</span><input name="name" value="${esc(x.name || "")}" required></label><label class="field"><span>Підзаголовок</span><input name="subtitle" value="${esc(x.subtitle || "")}"></label></div>${adminMediaField(x.imageUrl, "cards", "image_url", "Арт картки")}<div class="form-row"><label class="field"><span>Рідкість</span><input name="rarity_name" value="${esc(x.rarityName || "Common")}" required></label><label class="field"><span>Tier (0–10)</span><input name="rarity_tier" type="number" min="0" max="10" value="${x.rarityTier ?? 0}" required></label></div><div class="form-row"><label class="field"><span>Колір</span><input name="rarity_color" type="color" value="${esc(x.rarityColor || "#949ba4")}"></label><label class="field"><span>Вага в пулі</span><input name="base_weight" type="number" step="0.000001" min="0.000001" value="${x.baseWeight ?? 1}" required></label></div><div class="form-row"><label class="field"><span>Дохід / секунду</span><input name="income_per_second" type="number" min="0" value="${x.incomePerSecond ?? 1}" required></label><label class="field"><span>Івент</span><select name="event_id">${eventOptions(x.eventId)}</select></label></div><label class="check-option"><input name="event_only" type="checkbox" ${checked(x.eventOnly)}> Тільки під час прив’язаного івенту</label><label class="check-option"><input name="is_active" type="checkbox" ${checked(x.isActive ?? true)}> Картка активна</label><span class="field-label">Доступні мутації</span><div class="check-grid">${state.admin.mutations.map((m) => `<label class="check-option"><input type="checkbox" name="mutation_ids" value="${m.id}" ${checked((x.mutationIds || []).includes(m.id))}> ${esc(m.name)} · ${(m.chance * 100).toFixed(2)}%</label>`).join("")}</div></div>`;
+      }
+      function diceForm(x = {}) {
+        return `<div class="form-stack"><div class="form-row"><label class="field"><span>Назва</span><input name="name" value="${esc(x.name || "")}" required></label><label class="field"><span>Порядок</span><input name="sort_order" type="number" value="${x.sortOrder ?? 0}" required></label></div><label class="field"><span>Опис</span><textarea name="description" maxlength="220">${esc(x.description || "")}</textarea></label>${adminMediaField(x.textureUrl, "dice", "texture_url", "Текстура кубика")}<div class="form-row"><label class="field"><span>Колір граней</span><input name="face_color" type="color" value="${esc(x.faceColor || "#f2f3f5")}"></label><label class="field"><span>Колір крапок</span><input name="pip_color" type="color" value="${esc(x.pipColor || "#16171a")}"></label></div><div class="form-row"><label class="field"><span>Базовий Luck</span><input name="base_luck" type="number" min="1" step="0.01" value="${x.baseLuck ?? 1}" required></label><label class="field"><span>Ціна відкриття</span><input name="unlock_cost" type="number" min="0" value="${x.unlockCost ?? 0}" required></label></div><div class="form-row"><label class="field"><span>Базова ціна прокачки</span><input name="upgrade_base_cost" type="number" min="1" value="${x.upgradeBaseCost ?? 500}" required></label><label class="field"><span>Luck × за рівень</span><input name="luck_growth" type="number" min="1.01" max="10" step="0.01" value="${x.luckGrowth ?? 1.35}" required></label></div><div class="form-row"><label class="field"><span>Макс. рівень</span><input name="max_level" type="number" min="1" max="100" value="${x.maxLevel ?? 10}" required></label><label class="field"><span>Потрібний рівень гравця</span><input name="required_level" type="number" min="1" value="${x.requiredLevel ?? 1}" required></label></div><label class="check-option"><input name="is_starter" type="checkbox" ${checked(x.isStarter)}> Стартовий кубик для нових і старих акаунтів</label><label class="check-option"><input name="is_active" type="checkbox" ${checked(x.isActive ?? true)}> Кубик активний</label></div>`;
+      }
+      function previewAdminMedia(value, previewId) {
+        const preview = $(previewId),
+          src = safeImage(value);
+        if (preview)
+          preview.innerHTML = src ? `<img src="${src}" alt="Preview">` : "IMG";
+      }
+      async function uploadAdminAsset(file, purpose, inputId, previewId) {
+        if (!file) return;
+        if (file.size > 8 * 1024 * 1024) {
+          toast("Максимальний розмір — 8 МБ.", "error");
+          return;
+        }
+        const status = $("admin-upload-status"),
+          body = new FormData();
+        body.append("purpose", purpose);
+        body.append("file", file);
+        if (status) status.textContent = "Завантажуємо й конвертуємо…";
+        try {
+          const data = await api("/api/admin/upload", { method: "POST", body });
+          $(inputId).value = data.url;
+          previewAdminMedia(data.url, previewId);
+          if (status)
+            status.textContent = "Готово. URL буде збережено разом із записом.";
+          toast("Зображення завантажено.");
+        } catch (e) {
+          if (status) status.textContent = e.message;
+          toast(e.message, "error");
+        }
+      }
+      function mutationForm(x = {}) {
+        return `<div class="form-stack"><div class="form-row"><label class="field"><span>Назва</span><input name="name" value="${esc(x.name || "")}" required></label><label class="field"><span>Колір</span><input name="color" type="color" value="${esc(x.color || "#ffffff")}"></label></div><div class="form-row"><label class="field"><span>Шанс (0.08 = 8%)</span><input name="chance" type="number" step="0.000001" min="0.000001" max="100" value="${x.chance ?? 0.01}" required></label><label class="field"><span>Множник доходу</span><input name="income_multiplier" type="number" step="0.01" min="1" value="${x.incomeMultiplier ?? 1}" required></label></div><label class="field"><span>Івент</span><select name="event_id">${eventOptions(x.eventId)}</select></label><label class="check-option"><input name="event_only" type="checkbox" ${checked(x.eventOnly)}> Тільки під час івенту</label><label class="check-option"><input name="is_active" type="checkbox" ${checked(x.isActive ?? true)}> Мутація активна</label></div>`;
+      }
+      function localDate(value) {
+        if (!value) return "";
+        const d = new Date(value);
+        return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+          .toISOString()
+          .slice(0, 16);
+      }
+      function eventForm(x = {}) {
+        return `<div class="form-stack"><label class="field"><span>Назва</span><input name="name" value="${esc(x.name || "")}" required></label><label class="field"><span>Опис</span><textarea name="description">${esc(x.description || "")}</textarea></label><div class="form-row"><label class="field"><span>Колір</span><input name="accent" type="color" value="${esc(x.accent || "#f0b232")}"></label><label class="field"><span>Статус</span><select name="status">${["scheduled", "active", "paused"].map((v) => `<option ${x.status === v ? "selected" : ""}>${v}</option>`).join("")}</select></label></div><div class="form-row"><label class="field"><span>Початок</span><input name="start_at" type="datetime-local" value="${localDate(x.startAt)}"></label><label class="field"><span>Кінець</span><input name="end_at" type="datetime-local" value="${localDate(x.endAt)}"></label></div></div>`;
+      }
+      function potionForm(x = {}) {
+        return `<div class="form-stack"><label class="field"><span>Назва</span><input name="name" value="${esc(x.name || "")}" required></label><label class="field"><span>Опис</span><textarea name="description">${esc(x.description || "")}</textarea></label><div class="form-row"><label class="field"><span>Тип ефекту</span><select name="effect_type"><option value="luck" ${x.effectType === "luck" ? "selected" : ""}>luck</option><option value="speed" ${x.effectType === "speed" ? "selected" : ""}>speed</option></select></label><label class="field"><span>Множник</span><input name="multiplier" type="number" step="0.01" min="1.01" value="${x.multiplier ?? 1.5}" required></label></div><div class="form-row"><label class="field"><span>Тривалість, секунд</span><input name="duration_seconds" type="number" min="5" value="${x.durationSeconds ?? 600}" required></label><label class="field"><span>Стартова кількість</span><input name="starter_quantity" type="number" min="0" value="${x.starterQuantity ?? 0}" required></label></div><label class="field"><span>Колір</span><input name="color" type="color" value="${esc(x.color || "#5865f2")}"></label><label class="check-option"><input name="is_active" type="checkbox" ${checked(x.isActive ?? true)}> Зілля активне</label></div>`;
+      }
+      async function saveAdmin(event, kind, id) {
+        event.preventDefault();
+        const form = new FormData(event.target),
+          data = Object.fromEntries(form);
+        if (kind === "cards") {
+          data.rarity_tier = Number(data.rarity_tier);
+          data.base_weight = Number(data.base_weight);
+          data.income_per_second = Number(data.income_per_second);
+          data.event_id = data.event_id ? Number(data.event_id) : null;
+          data.event_only = form.has("event_only");
+          data.is_active = form.has("is_active");
+          data.mutation_ids = form.getAll("mutation_ids").map(Number);
+        }
+        if (kind === "dice") {
+          data.base_luck = Number(data.base_luck);
+          data.unlock_cost = Number(data.unlock_cost);
+          data.upgrade_base_cost = Number(data.upgrade_base_cost);
+          data.luck_growth = Number(data.luck_growth);
+          data.max_level = Number(data.max_level);
+          data.required_level = Number(data.required_level);
+          data.sort_order = Number(data.sort_order);
+          data.is_starter = form.has("is_starter");
+          data.is_active = form.has("is_active");
+        }
+        if (kind === "mutations") {
+          data.chance = Number(data.chance);
+          data.income_multiplier = Number(data.income_multiplier);
+          data.event_id = data.event_id ? Number(data.event_id) : null;
+          data.event_only = form.has("event_only");
+          data.is_active = form.has("is_active");
+        }
+        if (kind === "events") {
+          data.start_at = data.start_at
+            ? new Date(data.start_at).toISOString()
+            : null;
+          data.end_at = data.end_at
+            ? new Date(data.end_at).toISOString()
+            : null;
+        }
+        if (kind === "potions") {
+          data.multiplier = Number(data.multiplier);
+          data.duration_seconds = Number(data.duration_seconds);
+          data.starter_quantity = Number(data.starter_quantity);
+          data.is_active = form.has("is_active");
+        }
+        try {
+          state.admin = await api(`/api/admin/${kind}${id ? "/" + id : ""}`, {
+            method: id ? "PUT" : "POST",
+            body: JSON.stringify(data),
+          });
+          closeModal();
+          await loadGame();
+          render();
+          toast("Зміни збережено.");
+        } catch (e) {
+          toast(e.message, "error");
+        }
+      }
+      async function deleteAdmin(kind, id) {
+        const item = state.admin[kind].find((x) => x.id === id),
+          name = item?.name || "цей запис";
+        if (!confirm(`Видалити «${name}»?`)) return;
+        try {
+          state.admin = await api(`/api/admin/${kind}/${id}`, {
+            method: "DELETE",
+          });
+          await loadGame();
+          render();
+          toast("Видалено.");
+        } catch (e) {
+          toast(e.message, "error");
+        }
+      }
+      async function toggleAdminEvent(id) {
+        try {
+          state.admin = await api(`/api/admin/events/${id}/toggle`, {
+            method: "POST",
+          });
+          await loadGame();
+          render();
+          toast("Статус івенту змінено.");
+        } catch (e) {
+          toast(e.message, "error");
+        }
+      }
+      function renderHud() {
+        if (!state.game || $("app").hidden) {
+          $("hud").innerHTML = "";
+          return;
+        }
+        const live = state.game.events.find((x) => x.isLive),
+          active = state.game.potions.filter(
+            (x) =>
+              x.activeUntil && new Date(x.activeUntil).getTime() > state.now,
+          );
+        $("hud").innerHTML = [
+          live
+            ? `<div class="hud-item"><span class="hud-icon" style="--accent:${esc(live.accent)}">◷</span><span class="hud-copy"><strong>${esc(live.name)}</strong><small>Активний івент</small></span><span class="hud-time">${live.endAt ? remaining(live.endAt) : "LIVE"}</span></div>`
+            : "",
+          ...active.map(
+            (p) =>
+              `<div class="hud-item"><span class="hud-icon" style="--accent:${esc(p.color)}">⚗</span><span class="hud-copy"><strong>${esc(p.name)}</strong><small>${p.effectType} ${p.multiplier}×</small></span><span class="hud-time">${remaining(p.activeUntil)}</span></div>`,
+          ),
+        ].join("");
+      }
+      function openModal(content, wide = "") {
+        $("modal-root").innerHTML =
+          `<div class="modal-backdrop" onclick="if(event.target===this)closeModal()"><section class="modal ${wide}">${content}</section></div>`;
+      }
+      function closeModal() {
+        $("modal-root").innerHTML = "";
+      }
+      setInterval(() => {
+        state.now = Date.now();
+        renderHud();
+        if (state.view === "potions" || state.view === "events") render();
+      }, 1000);
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeModal();
+      });
+      boot();
+    </script>
+  </body>
 </html>
