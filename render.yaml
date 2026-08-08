@@ -15,5 +15,7 @@ services:
         generateValue: true
       - key: ADMIN_EMAIL
         sync: false
+      - key: CLOUDINARY_URL
+        sync: false
       - key: COOKIE_SECURE
         value: "true"
