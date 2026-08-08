@@ -3,6 +3,8 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
+import io
+import math
 import os
 import random
 import re
@@ -12,9 +14,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Annotated, Any, Generator
 
-from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
+import cloudinary
+import cloudinary.uploader
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, Response, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, Field
 from sqlalchemy import (
     BigInteger,
@@ -29,7 +34,6 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     create_engine,
-    delete,
     func,
     select,
 )
@@ -56,13 +60,18 @@ else:
 
 SECRET_KEY = os.getenv("SECRET_KEY", "change-this-secret-before-production")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "").strip().lower()
+CLOUDINARY_URL = os.getenv("CLOUDINARY_URL", "").strip()
 COOKIE_SECURE = os.getenv("COOKIE_SECURE", "true" if os.getenv("RENDER") else "false").lower() == "true"
 SESSION_COOKIE = "rift_roll_session"
 SESSION_DAYS = 30
+MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 HANDLE_RE = re.compile(r"^[a-z0-9_]{3,20}$")
 COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 RNG = random.SystemRandom()
+Image.MAX_IMAGE_PIXELS = 40_000_000
+if CLOUDINARY_URL:
+    cloudinary.config(secure=True)
 
 
 engine_kwargs: dict[str, Any] = {"pool_pre_ping": True}
@@ -233,6 +242,50 @@ class ShowcaseSlot(Base):
     inventory: Mapped[InventoryItem] = relationship()
 
 
+class Dice(Base):
+    __tablename__ = "dice"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(80), unique=True)
+    description: Mapped[str] = mapped_column(String(220), default="")
+    face_color: Mapped[str] = mapped_column(String(16), default="#f2f3f5")
+    pip_color: Mapped[str] = mapped_column(String(16), default="#16171a")
+    texture_url: Mapped[str] = mapped_column(Text, default="")
+    base_luck: Mapped[float] = mapped_column(Float, default=1.0)
+    unlock_cost: Mapped[int] = mapped_column(BigInteger, default=0)
+    upgrade_base_cost: Mapped[int] = mapped_column(BigInteger, default=500)
+    luck_growth: Mapped[float] = mapped_column(Float, default=1.35)
+    max_level: Mapped[int] = mapped_column(Integer, default=10)
+    required_level: Mapped[int] = mapped_column(Integer, default=1)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    is_starter: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: utcnow())
+
+
+class UserDice(Base):
+    __tablename__ = "user_dice"
+    __table_args__ = (UniqueConstraint("user_id", "dice_id", name="uq_user_dice"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    dice_id: Mapped[int] = mapped_column(ForeignKey("dice.id", ondelete="CASCADE"), index=True)
+    level: Mapped[int] = mapped_column(Integer, default=1)
+    is_equipped: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    acquired_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: utcnow())
+
+    dice: Mapped[Dice] = relationship()
+
+
+class UserAvatar(Base):
+    __tablename__ = "user_avatars"
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    avatar_url: Mapped[str] = mapped_column(Text)
+    public_id: Mapped[str] = mapped_column(String(255), default="")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: utcnow())
+
+
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -258,8 +311,72 @@ def clean_color(value: str, fallback: str) -> str:
     return value if COLOR_RE.fullmatch(value.strip()) else fallback
 
 
+def seed_dice(db: Session) -> None:
+    if db.scalar(select(func.count(Dice.id))):
+        return
+    db.add_all(
+        [
+            Dice(
+                name="Origin Cube",
+                description="Чистий білий куб для перших розломів.",
+                face_color="#f2f3f5",
+                pip_color="#17181b",
+                base_luck=1,
+                unlock_cost=0,
+                upgrade_base_cost=750,
+                luck_growth=1.42,
+                max_level=12,
+                required_level=1,
+                sort_order=0,
+                is_starter=True,
+            ),
+            Dice(
+                name="Azure Pulse",
+                description="Стабільний рідкісний куб для середини прогресії.",
+                face_color="#d9e7ff",
+                pip_color="#1f4f9b",
+                base_luck=25,
+                unlock_cost=25_000,
+                upgrade_base_cost=18_000,
+                luck_growth=1.38,
+                max_level=10,
+                required_level=4,
+                sort_order=10,
+            ),
+            Dice(
+                name="Eclipse Core",
+                description="Важкий івентовий куб із тисячами одиниць luck.",
+                face_color="#312f3d",
+                pip_color="#f0b232",
+                base_luck=2_500,
+                unlock_cost=2_000_000,
+                upgrade_base_cost=1_250_000,
+                luck_growth=1.32,
+                max_level=9,
+                required_level=12,
+                sort_order=20,
+            ),
+            Dice(
+                name="Sovereign d6",
+                description="Ендґейм-куб із базовими 240 000 luck.",
+                face_color="#eeeaff",
+                pip_color="#5c43a8",
+                base_luck=240_000,
+                unlock_cost=350_000_000,
+                upgrade_base_cost=225_000_000,
+                luck_growth=1.28,
+                max_level=8,
+                required_level=30,
+                sort_order=30,
+            ),
+        ]
+    )
+    db.commit()
+
+
 def seed_database(db: Session) -> None:
     if db.scalar(select(func.count(Card.id))):
+        seed_dice(db)
         return
 
     solar = GameEvent(
@@ -315,6 +432,7 @@ def seed_database(db: Session) -> None:
         ]
     )
     db.commit()
+    seed_dice(db)
 
 
 @asynccontextmanager
@@ -482,7 +600,87 @@ def effects_for(rows: list[UserPotion]) -> tuple[float, float]:
             luck *= row.potion.multiplier
         elif row.potion.effect_type == "speed":
             speed *= row.potion.multiplier
-    return min(luck, 20.0), min(speed, 5.0)
+    return min(luck, 1000.0), min(speed, 5.0)
+
+
+def dice_luck(die: Dice, level: int) -> float:
+    level = max(1, min(level, die.max_level))
+    return min(1_000_000_000.0, die.base_luck * (die.luck_growth ** (level - 1)))
+
+
+def dice_upgrade_cost(die: Dice, level: int) -> int | None:
+    if level >= die.max_level:
+        return None
+    return max(1, int(die.upgrade_base_cost * (2.05 ** (level - 1))))
+
+
+def ensure_user_dice(db: Session, user_id: int) -> list[UserDice]:
+    rows = list(
+        db.scalars(
+            select(UserDice)
+            .where(UserDice.user_id == user_id)
+            .options(joinedload(UserDice.dice))
+            .order_by(UserDice.acquired_at)
+        ).all()
+    )
+    starter = db.scalar(
+        select(Dice)
+        .where(Dice.is_active.is_(True))
+        .order_by(Dice.is_starter.desc(), Dice.unlock_cost, Dice.sort_order)
+        .limit(1)
+    )
+    if not rows and starter:
+        owned = UserDice(user_id=user_id, dice_id=starter.id, level=1, is_equipped=True)
+        db.add(owned)
+        db.flush()
+        rows = [owned]
+        owned.dice = starter
+    active_rows = [row for row in rows if row.dice and row.dice.is_active]
+    equipped = [row for row in active_rows if row.is_equipped]
+    if active_rows and not equipped:
+        active_rows[0].is_equipped = True
+        equipped = [active_rows[0]]
+    if len(equipped) > 1:
+        for row in equipped[1:]:
+            row.is_equipped = False
+    db.flush()
+    return rows
+
+
+def equipped_dice(rows: list[UserDice]) -> UserDice | None:
+    active = [row for row in rows if row.dice and row.dice.is_active]
+    return next((row for row in active if row.is_equipped), active[0] if active else None)
+
+
+def serialize_dice(die: Dice, owned: UserDice | None = None) -> dict[str, Any]:
+    level = owned.level if owned else 1
+    return {
+        "id": die.id,
+        "name": die.name,
+        "description": die.description,
+        "faceColor": die.face_color,
+        "pipColor": die.pip_color,
+        "textureUrl": die.texture_url,
+        "baseLuck": die.base_luck,
+        "currentLuck": dice_luck(die, level),
+        "unlockCost": die.unlock_cost,
+        "upgradeBaseCost": die.upgrade_base_cost,
+        "nextUpgradeCost": dice_upgrade_cost(die, level),
+        "luckGrowth": die.luck_growth,
+        "maxLevel": die.max_level,
+        "requiredLevel": die.required_level,
+        "sortOrder": die.sort_order,
+        "isStarter": die.is_starter,
+        "isActive": die.is_active,
+        "owned": owned is not None,
+        "level": level if owned else 0,
+        "isEquipped": bool(owned and owned.is_equipped),
+    }
+
+
+def avatar_for(db: Session, user_id: int) -> str:
+    row = db.get(UserAvatar, user_id)
+    return row.avatar_url if row else ""
 
 
 def inventory_rows(db: Session, user_id: int) -> list[InventoryItem]:
@@ -491,7 +689,7 @@ def inventory_rows(db: Session, user_id: int) -> list[InventoryItem]:
             select(InventoryItem)
             .where(InventoryItem.user_id == user_id)
             .options(joinedload(InventoryItem.card), joinedload(InventoryItem.mutation))
-            .order_by(Card.rarity_tier.desc() if False else InventoryItem.last_obtained_at.desc())
+            .order_by(InventoryItem.last_obtained_at.desc())
         ).all()
     )
 
@@ -584,7 +782,7 @@ def serialize_inventory(item: InventoryItem) -> dict[str, Any]:
     }
 
 
-def hourly_champion(db: Session, cards: list[Card]) -> dict[str, Any] | None:
+def hourly_champion(db: Session) -> dict[str, Any] | None:
     hour_start = utcnow().replace(minute=0, second=0, microsecond=0)
     roll = db.scalar(
         select(RollHistory)
@@ -597,7 +795,7 @@ def hourly_champion(db: Session, cards: list[Card]) -> dict[str, Any] | None:
             joinedload(RollHistory.mutation),
         )
         .order_by(
-            (Card.base_weight * func.coalesce(Mutation.chance, 1.0)).asc(),
+            (RollHistory.adjusted_chance * func.coalesce(Mutation.chance, 1.0)).asc(),
             Card.rarity_tier.desc(),
             RollHistory.rolled_at.desc(),
         )
@@ -605,14 +803,14 @@ def hourly_champion(db: Session, cards: list[Card]) -> dict[str, Any] | None:
     )
     if not roll:
         return None
-    total_weight = sum(card.base_weight for card in cards if card.is_active) or 1
     mutation_chance = roll.mutation.chance if roll.mutation else 1.0
-    denominator = total_weight / max(0.000001, roll.card.base_weight * mutation_chance)
+    denominator = 1 / max(0.000000000001, roll.adjusted_chance * mutation_chance)
     return {
         "id": roll.id,
         "playerId": roll.user_id,
         "playerHandle": roll.user.handle,
         "playerName": roll.user.display_name,
+        "playerAvatarUrl": avatar_for(db, roll.user_id),
         "rolledAt": iso(roll.rolled_at),
         "effectiveLuck": roll.effective_luck,
         "cardId": roll.card_id,
@@ -645,7 +843,19 @@ def game_snapshot(db: Session, user: User) -> dict[str, Any]:
     items = inventory_rows(db, user.id)
     accrue_income(db, user, items)
     potions = potion_rows(db, user.id)
-    luck, speed = effects_for(potions)
+    potion_luck, speed = effects_for(potions)
+    owned_dice = ensure_user_dice(db, user.id)
+    equipped = equipped_dice(owned_dice)
+    die_luck = dice_luck(equipped.dice, equipped.level) if equipped else 1.0
+    luck = min(1_000_000_000.0, die_luck * potion_luck)
+    dice_catalog = list(
+        db.scalars(
+            select(Dice)
+            .where(Dice.is_active.is_(True))
+            .order_by(Dice.sort_order, Dice.unlock_cost, Dice.id)
+        ).all()
+    )
+    owned_by_dice = {row.dice_id: row for row in owned_dice}
     total_income = sum(item_income(item) for item in items)
     history = list(
         db.scalars(
@@ -664,6 +874,7 @@ def game_snapshot(db: Session, user: User) -> dict[str, Any]:
             "handle": user.handle,
             "bio": user.bio,
             "accent": user.accent,
+            "avatarUrl": avatar_for(db, user.id),
             "joinedAt": iso(user.created_at),
             "isAdmin": user_is_admin(user),
             "level": user.level,
@@ -672,6 +883,9 @@ def game_snapshot(db: Session, user: User) -> dict[str, Any]:
             "rolls": user.rolls,
             "lastRollAt": iso(user.last_roll_at),
             "luck": luck,
+            "diceLuck": die_luck,
+            "potionLuck": potion_luck,
+            "equippedDiceId": equipped.dice_id if equipped else None,
             "speed": speed,
             "totalIncomePerSecond": total_income,
             "uniqueOwned": len({item.card_id for item in items}),
@@ -680,6 +894,8 @@ def game_snapshot(db: Session, user: User) -> dict[str, Any]:
         "cards": [serialize_card(card, live_ids) for card in cards],
         "mutations": [serialize_mutation(mutation, live_ids) for mutation in mutations],
         "events": [serialize_event(event) for event in events],
+        "dice": [serialize_dice(die, owned_by_dice.get(die.id)) for die in dice_catalog],
+        "equippedDice": serialize_dice(equipped.dice, equipped) if equipped else None,
         "inventory": [serialize_inventory(item) for item in items],
         "potions": [
             {
@@ -712,7 +928,7 @@ def game_snapshot(db: Session, user: User) -> dict[str, Any]:
             }
             for entry in history
         ],
-        "hourlyChampion": hourly_champion(db, cards),
+        "hourlyChampion": hourly_champion(db),
         "hourEndsAt": iso(utcnow().replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)),
     }
 
@@ -735,6 +951,14 @@ def profile_payload(db: Session, viewer: User, target_handle: str | None = None)
             .order_by(ShowcaseSlot.page_index, ShowcaseSlot.slot_index)
         ).all()
     )
+    target_dice_rows = list(
+        db.scalars(
+            select(UserDice)
+            .where(UserDice.user_id == target.id)
+            .options(joinedload(UserDice.dice))
+        ).all()
+    )
+    target_equipped = equipped_dice(target_dice_rows)
     total_cards = db.scalar(select(func.count(Card.id)).where(Card.is_active.is_(True))) or 0
     return {
         "isOwner": target.id == viewer.id,
@@ -744,6 +968,7 @@ def profile_payload(db: Session, viewer: User, target_handle: str | None = None)
             "handle": target.handle,
             "bio": target.bio,
             "accent": target.accent,
+            "avatarUrl": avatar_for(db, target.id),
             "level": target.level,
             "rolls": target.rolls,
             "coins": target.coins,
@@ -752,6 +977,7 @@ def profile_payload(db: Session, viewer: User, target_handle: str | None = None)
             "ownedVariants": len(items),
             "totalCards": total_cards,
             "totalIncomePerSecond": sum(item_income(item) for item in items),
+            "equippedDice": serialize_dice(target_equipped.dice, target_equipped) if target_equipped else None,
         },
         "showcase": [
             {
@@ -834,6 +1060,23 @@ class PotionInput(BaseModel):
     is_active: bool = True
 
 
+class DiceInput(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    description: str = Field(default="", max_length=220)
+    face_color: str = Field(default="#f2f3f5", max_length=16)
+    pip_color: str = Field(default="#16171a", max_length=16)
+    texture_url: str = Field(default="", max_length=2000)
+    base_luck: float = Field(default=1, ge=1, le=1_000_000_000)
+    unlock_cost: int = Field(default=0, ge=0, le=10**18)
+    upgrade_base_cost: int = Field(default=500, ge=1, le=10**18)
+    luck_growth: float = Field(default=1.35, ge=1.01, le=10)
+    max_level: int = Field(default=10, ge=1, le=100)
+    required_level: int = Field(default=1, ge=1, le=1_000_000)
+    sort_order: int = Field(default=0, ge=-100_000, le=100_000)
+    is_starter: bool = False
+    is_active: bool = True
+
+
 LOGIN_FAILURES: dict[str, list[datetime]] = {}
 
 
@@ -843,6 +1086,59 @@ def check_login_rate(ip: str) -> None:
     LOGIN_FAILURES[ip] = attempts
     if len(attempts) >= 10:
         raise HTTPException(status_code=429, detail="Забагато спроб входу. Спробуй через 10 хвилин.")
+
+
+def upload_image_to_cloud(file: UploadFile, purpose: str) -> dict[str, Any]:
+    if not CLOUDINARY_URL:
+        raise HTTPException(
+            status_code=503,
+            detail="Завантаження не налаштоване. Додай CLOUDINARY_URL у Render Environment.",
+        )
+    if file.content_type not in {"image/jpeg", "image/png", "image/webp", "image/gif"}:
+        raise HTTPException(status_code=415, detail="Підтримуються JPG, PNG, WEBP або GIF.")
+    data = file.file.read(MAX_UPLOAD_BYTES + 1)
+    if not data:
+        raise HTTPException(status_code=400, detail="Файл порожній.")
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="Максимальний розмір зображення — 8 МБ.")
+    try:
+        with Image.open(io.BytesIO(data)) as image:
+            width, height = image.size
+            image.verify()
+    except (UnidentifiedImageError, OSError, Image.DecompressionBombError):
+        raise HTTPException(status_code=415, detail="Файл пошкоджений або не є зображенням.")
+    if width < 64 or height < 64:
+        raise HTTPException(status_code=400, detail="Зображення має бути щонайменше 64×64 px.")
+
+    options: dict[str, Any] = {
+        "folder": f"rift-roll/{purpose}",
+        "public_id": f"{purpose}-{secrets.token_hex(10)}",
+        "resource_type": "image",
+        "format": "webp",
+        "quality": "auto:good",
+        "overwrite": False,
+    }
+    if purpose == "avatars":
+        options.update(width=512, height=512, crop="fill", gravity="auto")
+    elif purpose == "dice":
+        options.update(width=640, height=640, crop="fill", gravity="auto")
+    else:
+        options.update(width=1600, height=2000, crop="limit")
+    try:
+        result = cloudinary.uploader.upload(io.BytesIO(data), **options)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="Хмарне сховище не прийняло зображення.") from exc
+    secure_url = str(result.get("secure_url") or "")
+    public_id = str(result.get("public_id") or "")
+    if not secure_url.startswith("https://") or not public_id:
+        raise HTTPException(status_code=502, detail="Сховище не повернуло коректний URL.")
+    return {
+        "url": secure_url,
+        "publicId": public_id,
+        "width": result.get("width"),
+        "height": result.get("height"),
+        "bytes": result.get("bytes"),
+    }
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -890,6 +1186,7 @@ def register(payload: RegisterInput, db: DB):
         db.flush()
         for potion in db.scalars(select(Potion)).all():
             db.add(UserPotion(user_id=user.id, potion_id=potion.id, quantity=potion.starter_quantity))
+        ensure_user_dice(db, user.id)
         db.commit()
     except IntegrityError:
         db.rollback()
@@ -930,7 +1227,12 @@ def get_game(user: CurrentUser, db: DB):
 def roll(user: CurrentUser, db: DB):
     user = db.scalar(select(User).where(User.id == user.id).with_for_update()) or user
     potion_inventory = potion_rows(db, user.id)
-    luck, speed = effects_for(potion_inventory)
+    potion_luck, speed = effects_for(potion_inventory)
+    owned_dice = ensure_user_dice(db, user.id)
+    equipped = equipped_dice(owned_dice)
+    if not equipped:
+        raise HTTPException(status_code=409, detail="Немає активного кубика для ролу.")
+    luck = min(1_000_000_000.0, dice_luck(equipped.dice, equipped.level) * potion_luck)
     minimum_delay_ms = max(300, round(1200 / speed))
     now = utcnow()
     if user.last_roll_at:
@@ -952,7 +1254,13 @@ def roll(user: CurrentUser, db: DB):
     active_cards = [card for card in cards if card_available(card, live_ids)]
     if not active_cards:
         raise HTTPException(status_code=409, detail="Активний пул карток порожній.")
-    weighted = [(card, card.base_weight * (luck ** (card.rarity_tier * 0.62))) for card in active_cards]
+    log_luck = math.log(max(1.0, luck))
+    log_weights = [
+        (card, math.log(max(card.base_weight, 0.000001)) + card.rarity_tier * 0.62 * log_luck)
+        for card in active_cards
+    ]
+    max_log_weight = max(weight for _, weight in log_weights)
+    weighted = [(card, math.exp(weight - max_log_weight)) for card, weight in log_weights]
     total_weight = sum(weight for _, weight in weighted)
     cursor = RNG.random() * total_weight
     selected, selected_weight = weighted[-1]
@@ -1018,11 +1326,76 @@ def roll(user: CurrentUser, db: DB):
             "mutation": serialize_mutation(mutation, live_ids) if mutation else None,
             "adjustedChance": adjusted_chance,
             "effectiveLuck": luck,
+            "dice": serialize_dice(equipped.dice, equipped),
             "xpEarned": xp_earned,
             "coinsEarned": coins_earned,
         }
     )
     return {"result": result, "snapshot": game_snapshot(db, user)}
+
+
+@app.post("/api/dice/{dice_id}/buy")
+def buy_dice(dice_id: int, user: CurrentUser, db: DB):
+    user = db.scalar(select(User).where(User.id == user.id).with_for_update()) or user
+    die = db.get(Dice, dice_id)
+    if not die or not die.is_active:
+        raise HTTPException(status_code=404, detail="Кубик не знайдено.")
+    if db.scalar(select(UserDice).where(UserDice.user_id == user.id, UserDice.dice_id == die.id)):
+        raise HTTPException(status_code=409, detail="Цей кубик уже відкрито.")
+    if user.level < die.required_level:
+        raise HTTPException(status_code=409, detail=f"Потрібен рівень {die.required_level}.")
+    accrue_income(db, user)
+    if user.coins < die.unlock_cost:
+        raise HTTPException(status_code=409, detail="Недостатньо Rift Credits.")
+    user.coins -= die.unlock_cost
+    already_equipped = db.scalar(
+        select(func.count(UserDice.id)).where(UserDice.user_id == user.id, UserDice.is_equipped.is_(True))
+    )
+    db.add(UserDice(user_id=user.id, dice_id=die.id, level=1, is_equipped=not bool(already_equipped)))
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Цей кубик уже відкрито.")
+    return {"snapshot": game_snapshot(db, user)}
+
+
+@app.post("/api/dice/{dice_id}/equip")
+def equip_user_dice(dice_id: int, user: CurrentUser, db: DB):
+    owned = db.scalar(
+        select(UserDice)
+        .where(UserDice.user_id == user.id, UserDice.dice_id == dice_id)
+        .options(joinedload(UserDice.dice))
+    )
+    if not owned or not owned.dice.is_active:
+        raise HTTPException(status_code=404, detail="Спочатку відкрий цей кубик.")
+    for row in db.scalars(select(UserDice).where(UserDice.user_id == user.id)).all():
+        row.is_equipped = row.id == owned.id
+    db.commit()
+    return {"snapshot": game_snapshot(db, user)}
+
+
+@app.post("/api/dice/{dice_id}/upgrade")
+def upgrade_user_dice(dice_id: int, user: CurrentUser, db: DB):
+    user = db.scalar(select(User).where(User.id == user.id).with_for_update()) or user
+    owned = db.scalar(
+        select(UserDice)
+        .where(UserDice.user_id == user.id, UserDice.dice_id == dice_id)
+        .options(joinedload(UserDice.dice))
+        .with_for_update()
+    )
+    if not owned or not owned.dice.is_active:
+        raise HTTPException(status_code=404, detail="Кубик не знайдено у твоїй колекції.")
+    cost = dice_upgrade_cost(owned.dice, owned.level)
+    if cost is None:
+        raise HTTPException(status_code=409, detail="Кубик уже має максимальний рівень.")
+    accrue_income(db, user)
+    if user.coins < cost:
+        raise HTTPException(status_code=409, detail="Недостатньо Rift Credits для прокачки.")
+    user.coins -= cost
+    owned.level += 1
+    db.commit()
+    return {"snapshot": game_snapshot(db, user)}
 
 
 @app.post("/api/potions/{potion_id}/use")
@@ -1066,6 +1439,33 @@ def update_profile(payload: ProfileInput, user: CurrentUser, db: DB):
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="Цей handle уже зайнятий.")
+    return profile_payload(db, user)
+
+
+@app.post("/api/profile/avatar")
+def upload_profile_avatar(user: CurrentUser, db: DB, file: UploadFile = File(...)):
+    uploaded = upload_image_to_cloud(file, "avatars")
+    row = db.get(UserAvatar, user.id)
+    previous_public_id = row.public_id if row else ""
+    if row:
+        row.avatar_url = uploaded["url"]
+        row.public_id = uploaded["publicId"]
+        row.updated_at = utcnow()
+    else:
+        db.add(
+            UserAvatar(
+                user_id=user.id,
+                avatar_url=uploaded["url"],
+                public_id=uploaded["publicId"],
+                updated_at=utcnow(),
+            )
+        )
+    db.commit()
+    if previous_public_id and previous_public_id != uploaded["publicId"]:
+        try:
+            cloudinary.uploader.destroy(previous_public_id, invalidate=True, resource_type="image")
+        except Exception:
+            pass
     return profile_payload(db, user)
 
 
@@ -1136,6 +1536,7 @@ def players(user: CurrentUser, db: DB, q: str = ""):
                 "handle": row.handle,
                 "bio": row.bio,
                 "accent": row.accent,
+                "avatarUrl": avatar_for(db, row.id),
                 "level": row.level,
                 "rolls": row.rolls,
                 "ownedVariants": variants,
@@ -1151,8 +1552,10 @@ def admin_payload(db: Session) -> dict[str, Any]:
     cards = list(db.scalars(select(Card).options(joinedload(Card.mutations)).order_by(Card.rarity_tier.desc())).unique().all())
     mutations = list(db.scalars(select(Mutation).order_by(Mutation.chance.asc())).all())
     potions = list(db.scalars(select(Potion).order_by(Potion.name)).all())
+    dice_catalog = list(db.scalars(select(Dice).order_by(Dice.sort_order, Dice.unlock_cost, Dice.id)).all())
     return {
         "cards": [serialize_card(card, live_ids) for card in cards],
+        "dice": [serialize_dice(die) for die in dice_catalog],
         "mutations": [serialize_mutation(mutation, live_ids) for mutation in mutations],
         "events": [serialize_event(event) for event in events],
         "potions": [
@@ -1175,6 +1578,17 @@ def admin_payload(db: Session) -> dict[str, Any]:
 @app.get("/api/admin")
 def get_admin(_: AdminUser, db: DB):
     return admin_payload(db)
+
+
+@app.post("/api/admin/upload")
+def admin_upload_image(
+    _: AdminUser,
+    purpose: str = Form(...),
+    file: UploadFile = File(...),
+):
+    if purpose not in {"cards", "dice"}:
+        raise HTTPException(status_code=400, detail="Тип зображення має бути cards або dice.")
+    return upload_image_to_cloud(file, purpose)
 
 
 def apply_card(db: Session, card: Card, payload: CardInput) -> None:
@@ -1371,5 +1785,70 @@ def delete_potion(item_id: int, _: AdminUser, db: DB):
     if not potion:
         raise HTTPException(status_code=404, detail="Зілля не знайдено.")
     db.delete(potion)
+    db.commit()
+    return admin_payload(db)
+
+
+def apply_dice(db: Session, die: Dice, payload: DiceInput) -> None:
+    die.name = payload.name.strip()
+    die.description = payload.description.strip()
+    die.face_color = clean_color(payload.face_color, "#f2f3f5")
+    die.pip_color = clean_color(payload.pip_color, "#16171a")
+    die.texture_url = payload.texture_url.strip()
+    die.base_luck = payload.base_luck
+    die.unlock_cost = payload.unlock_cost
+    die.upgrade_base_cost = payload.upgrade_base_cost
+    die.luck_growth = payload.luck_growth
+    die.max_level = payload.max_level
+    die.required_level = payload.required_level
+    die.sort_order = payload.sort_order
+    die.is_starter = payload.is_starter
+    die.is_active = payload.is_active
+    if payload.is_starter:
+        for other in db.scalars(select(Dice).where(Dice.id != (die.id or -1), Dice.is_starter.is_(True))).all():
+            other.is_starter = False
+
+
+@app.post("/api/admin/dice")
+def create_dice(payload: DiceInput, _: AdminUser, db: DB):
+    die = Dice(name=payload.name, base_luck=payload.base_luck)
+    apply_dice(db, die, payload)
+    db.add(die)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Кубик із такою назвою вже існує.")
+    return admin_payload(db)
+
+
+@app.put("/api/admin/dice/{item_id}")
+def update_dice(item_id: int, payload: DiceInput, _: AdminUser, db: DB):
+    die = db.get(Dice, item_id)
+    if not die:
+        raise HTTPException(status_code=404, detail="Кубик не знайдено.")
+    apply_dice(db, die, payload)
+    for owned in db.scalars(select(UserDice).where(UserDice.dice_id == die.id, UserDice.level > die.max_level)).all():
+        owned.level = die.max_level
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Кубик із такою назвою вже існує.")
+    return admin_payload(db)
+
+
+@app.delete("/api/admin/dice/{item_id}")
+def delete_dice(item_id: int, _: AdminUser, db: DB):
+    die = db.get(Dice, item_id)
+    if not die:
+        raise HTTPException(status_code=404, detail="Кубик не знайдено.")
+    owners = db.scalar(select(func.count(UserDice.id)).where(UserDice.dice_id == die.id)) or 0
+    if owners:
+        raise HTTPException(
+            status_code=409,
+            detail="Цей кубик уже є у гравців. Вимкни його замість видалення.",
+        )
+    db.delete(die)
     db.commit()
     return admin_payload(db)
