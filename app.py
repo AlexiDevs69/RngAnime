@@ -92,6 +92,13 @@ card_mutations = Table(
     Column("mutation_id", ForeignKey("mutations.id", ondelete="CASCADE"), primary_key=True),
 )
 
+card_rarities = Table(
+    "card_rarities",
+    Base.metadata,
+    Column("card_id", ForeignKey("cards.id", ondelete="CASCADE"), primary_key=True),
+    Column("rarity_id", ForeignKey("rarities.id", ondelete="RESTRICT"), primary_key=True),
+)
+
 
 class User(Base):
     __tablename__ = "users"
@@ -126,6 +133,19 @@ class GameEvent(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: utcnow())
 
 
+class Rarity(Base):
+    __tablename__ = "rarities"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    description: Mapped[str] = mapped_column(String(180), default="")
+    tier: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    color: Mapped[str] = mapped_column(String(16), default="#949ba4")
+    icon_key: Mapped[str] = mapped_column(String(24), default="spark")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: utcnow())
+
+
 class Card(Base):
     __tablename__ = "cards"
 
@@ -144,6 +164,10 @@ class Card(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: utcnow())
 
     event: Mapped[GameEvent | None] = relationship()
+    rarity_definition: Mapped[Rarity | None] = relationship(
+        secondary=card_rarities,
+        uselist=False,
+    )
     mutations: Mapped[list[Mutation]] = relationship(secondary=card_mutations, back_populates="cards")
 
 
@@ -362,6 +386,38 @@ class UserRebirth(Base):
     )
 
 
+class RebirthTierBonus(Base):
+    __tablename__ = "rebirth_tier_bonuses"
+    __table_args__ = (
+        UniqueConstraint("rebirth_tier_id", "bonus_key", name="uq_rebirth_tier_bonus"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    rebirth_tier_id: Mapped[int] = mapped_column(
+        ForeignKey("rebirth_tiers.id", ondelete="CASCADE"), index=True
+    )
+    bonus_key: Mapped[str] = mapped_column(String(32))
+    multiplier: Mapped[float] = mapped_column(Float, default=1.0)
+
+
+class CoinTransaction(Base):
+    __tablename__ = "coin_transactions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    amount: Mapped[int] = mapped_column(BigInteger)
+    balance_after: Mapped[int] = mapped_column(BigInteger)
+    reason: Mapped[str] = mapped_column(String(32), index=True)
+    reference_type: Mapped[str] = mapped_column(String(32), default="")
+    reference_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    note: Mapped[str] = mapped_column(String(180), default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: utcnow(), index=True
+    )
+
+
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -536,8 +592,15 @@ def seed_database(db: Session) -> None:
 
 
 def default_potion_price(potion: Potion) -> int:
+    starter_prices = {
+        "Lucky Tonic": 600,
+        "Fortune Elixir": 1200,
+        "Swift Draught": 850,
+    }
+    if potion.name in starter_prices:
+        return starter_prices[potion.name]
     minutes = max(1, potion.duration_seconds // 60)
-    return max(750, int(potion.multiplier * minutes * 360))
+    return max(350, int(potion.multiplier * minutes * 80))
 
 
 def ensure_shop_offers(db: Session) -> None:
@@ -564,6 +627,108 @@ def ensure_shop_offers(db: Session) -> None:
             )
         )
         changed = True
+    if changed:
+        db.commit()
+
+
+def seed_rarities(db: Session) -> None:
+    defaults = [
+        ("Common", "Базова рідкість", 0, "#949ba4", "circle"),
+        ("Rare", "Помітно рідкісна картка", 1, "#50a7ff", "diamond"),
+        ("Epic", "Сильна картка середньої гри", 2, "#a56bff", "spark"),
+        ("Legendary", "Дуже рідкісний рол", 3, "#ffb13d", "crown"),
+        ("Mythic", "Ендґейм-рідкість", 4, "#ff5d72", "flame"),
+        ("Paragon", "Вершина стандартного пулу", 5, "#e8dcff", "star"),
+        ("Celestial", "Обмежена небесна рідкість", 5, "#74e7ff", "nova"),
+    ]
+    by_name = {
+        rarity.name.casefold(): rarity
+        for rarity in db.scalars(select(Rarity)).all()
+    }
+    for name, description, tier, color, icon_key in defaults:
+        if name.casefold() in by_name:
+            continue
+        rarity = Rarity(
+            name=name,
+            description=description,
+            tier=tier,
+            color=color,
+            icon_key=icon_key,
+        )
+        db.add(rarity)
+        db.flush()
+        by_name[name.casefold()] = rarity
+
+    linked_card_ids = {
+        row[0] for row in db.execute(select(card_rarities.c.card_id)).all()
+    }
+    for card in db.scalars(select(Card)).all():
+        if card.id in linked_card_ids:
+            continue
+        rarity = by_name.get(card.rarity_name.casefold())
+        if not rarity:
+            rarity = Rarity(
+                name=card.rarity_name,
+                tier=card.rarity_tier,
+                color=clean_color(card.rarity_color, "#949ba4"),
+                icon_key="spark",
+            )
+            db.add(rarity)
+            db.flush()
+            by_name[rarity.name.casefold()] = rarity
+        card.rarity_definition = rarity
+    db.commit()
+
+
+def ensure_rebirth_bonuses(db: Session) -> None:
+    existing = {
+        (row.rebirth_tier_id, row.bonus_key)
+        for row in db.scalars(select(RebirthTierBonus)).all()
+    }
+    changed = False
+    for tier in db.scalars(select(RebirthTier)).all():
+        key = (tier.id, "roll_coins")
+        if key in existing:
+            continue
+        db.add(
+            RebirthTierBonus(
+                rebirth_tier_id=tier.id,
+                bonus_key="roll_coins",
+                multiplier=min(3.0, 1.10 + tier.tier * 0.10),
+            )
+        )
+        changed = True
+    if changed:
+        db.commit()
+
+
+def normalize_default_economy(db: Session) -> None:
+    # Only migrate the exact old defaults; administrator-defined prices stay intact.
+    target_prices = {
+        "Lucky Tonic": (5400, 600),
+        "Fortune Elixir": (4050, 1200),
+        "Swift Draught": (5760, 850),
+    }
+    changed = False
+    offers = db.scalars(
+        select(PotionShopOffer).options(joinedload(PotionShopOffer.potion))
+    ).all()
+    for offer in offers:
+        migration = target_prices.get(offer.potion.name)
+        if migration and offer.price == migration[0]:
+            offer.price = migration[1]
+            changed = True
+    default_rebirths = {
+        (1, "Перший розлом"): (50_000, 20_000),
+        (2, "Стабілізація Rift"): (650_000, 250_000),
+        (3, "Ascendant"): (8_000_000, 3_000_000),
+        (4, "Sovereign"): (120_000_000, 45_000_000),
+    }
+    for tier in db.scalars(select(RebirthTier)).all():
+        migration = default_rebirths.get((tier.tier, tier.name))
+        if migration and tier.required_coins == migration[0]:
+            tier.required_coins = migration[1]
+            changed = True
     if changed:
         db.commit()
 
@@ -643,6 +808,9 @@ async def lifespan(_: FastAPI):
         seed_database(db)
         ensure_shop_offers(db)
         seed_rebirths(db)
+        seed_rarities(db)
+        ensure_rebirth_bonuses(db)
+        normalize_default_economy(db)
     yield
 
 
@@ -876,6 +1044,78 @@ def rebirth_multipliers(db: Session, user_id: int) -> tuple[float, float, int]:
     return min(luck, 1_000_000.0), min(income, 1_000_000.0), progress.completed_tier
 
 
+def rebirth_coin_multiplier(db: Session, user_id: int) -> float:
+    completed_tier = rebirth_progress(db, user_id).completed_tier
+    if completed_tier <= 0:
+        return 1.0
+    bonuses = db.scalars(
+        select(RebirthTierBonus)
+        .join(RebirthTier, RebirthTier.id == RebirthTierBonus.rebirth_tier_id)
+        .where(
+            RebirthTier.is_active.is_(True),
+            RebirthTier.tier <= completed_tier,
+            RebirthTierBonus.bonus_key == "roll_coins",
+        )
+        .order_by(RebirthTier.tier)
+    ).all()
+    multiplier = 1.0
+    for bonus in bonuses:
+        multiplier *= max(1.0, bonus.multiplier)
+    return min(multiplier, 1_000_000.0)
+
+
+def change_coins(
+    db: Session,
+    user: User,
+    amount: int,
+    reason: str,
+    *,
+    reference_type: str = "",
+    reference_id: int | None = None,
+    note: str = "",
+) -> int:
+    amount = int(amount)
+    new_balance = int(user.coins) + amount
+    if new_balance < 0:
+        raise HTTPException(status_code=409, detail="Недостатньо Rift Coins.")
+    user.coins = new_balance
+    if amount:
+        db.add(
+            CoinTransaction(
+                user_id=user.id,
+                amount=amount,
+                balance_after=new_balance,
+                reason=reason[:32],
+                reference_type=reference_type[:32],
+                reference_id=reference_id,
+                note=note[:180],
+            )
+        )
+    return new_balance
+
+
+def wallet_history(db: Session, user_id: int, limit: int = 12) -> list[dict[str, Any]]:
+    rows = db.scalars(
+        select(CoinTransaction)
+        .where(CoinTransaction.user_id == user_id)
+        .order_by(CoinTransaction.created_at.desc(), CoinTransaction.id.desc())
+        .limit(limit)
+    ).all()
+    return [
+        {
+            "id": row.id,
+            "amount": row.amount,
+            "balanceAfter": row.balance_after,
+            "reason": row.reason,
+            "referenceType": row.reference_type,
+            "referenceId": row.reference_id,
+            "note": row.note,
+            "createdAt": iso(row.created_at),
+        }
+        for row in rows
+    ]
+
+
 def dice_luck(die: Dice, level: int) -> float:
     level = max(1, min(level, die.max_level))
     return min(1_000_000_000.0, die.base_luck * (die.luck_growth ** (level - 1)))
@@ -961,7 +1201,10 @@ def inventory_rows(db: Session, user_id: int) -> list[InventoryItem]:
         db.scalars(
             select(InventoryItem)
             .where(InventoryItem.user_id == user_id)
-            .options(joinedload(InventoryItem.card), joinedload(InventoryItem.mutation))
+            .options(
+                joinedload(InventoryItem.card).joinedload(Card.rarity_definition),
+                joinedload(InventoryItem.mutation),
+            )
             .order_by(InventoryItem.last_obtained_at.desc())
         ).all()
     )
@@ -983,7 +1226,7 @@ def accrue_income(db: Session, user: User, items: list[InventoryItem] | None = N
     earned = int(
         sum(item_income(item) for item in items) * elapsed * income_multiplier
     )
-    user.coins += earned
+    change_coins(db, user, earned, "passive_income", note=f"{elapsed} сек. офлайн-доходу")
     user.last_income_at = now
     db.flush()
     return earned
@@ -1016,15 +1259,30 @@ def serialize_mutation(mutation: Mutation, live_ids: set[int]) -> dict[str, Any]
     }
 
 
+def serialize_rarity(rarity: Rarity) -> dict[str, Any]:
+    return {
+        "id": rarity.id,
+        "name": rarity.name,
+        "description": rarity.description,
+        "tier": rarity.tier,
+        "color": rarity.color,
+        "iconKey": rarity.icon_key,
+        "isActive": rarity.is_active,
+    }
+
+
 def serialize_card(card: Card, live_ids: set[int]) -> dict[str, Any]:
+    rarity = card.rarity_definition
     return {
         "id": card.id,
         "name": card.name,
         "subtitle": card.subtitle,
         "imageUrl": card.image_url,
-        "rarityName": card.rarity_name,
-        "rarityTier": card.rarity_tier,
-        "rarityColor": card.rarity_color,
+        "rarityId": rarity.id if rarity else None,
+        "rarityName": rarity.name if rarity else card.rarity_name,
+        "rarityTier": rarity.tier if rarity else card.rarity_tier,
+        "rarityColor": rarity.color if rarity else card.rarity_color,
+        "rarityIcon": rarity.icon_key if rarity else "spark",
         "baseWeight": card.base_weight,
         "incomePerSecond": card.income_per_second,
         "eventOnly": card.event_only,
@@ -1037,6 +1295,7 @@ def serialize_card(card: Card, live_ids: set[int]) -> dict[str, Any]:
 
 def serialize_inventory(item: InventoryItem) -> dict[str, Any]:
     mutation = item.mutation
+    rarity = item.card.rarity_definition
     return {
         "id": item.id,
         "cardId": item.card_id,
@@ -1048,9 +1307,10 @@ def serialize_inventory(item: InventoryItem) -> dict[str, Any]:
         "name": item.card.name,
         "subtitle": item.card.subtitle,
         "imageUrl": item.card.image_url,
-        "rarityName": item.card.rarity_name,
-        "rarityTier": item.card.rarity_tier,
-        "rarityColor": item.card.rarity_color,
+        "rarityName": rarity.name if rarity else item.card.rarity_name,
+        "rarityTier": rarity.tier if rarity else item.card.rarity_tier,
+        "rarityColor": rarity.color if rarity else item.card.rarity_color,
+        "rarityIcon": rarity.icon_key if rarity else "spark",
         "incomePerSecond": item.card.income_per_second,
         "mutationName": mutation.name if mutation else None,
         "mutationColor": mutation.color if mutation else None,
@@ -1106,6 +1366,12 @@ def serialize_rebirth_tier(
     tier: RebirthTier,
     user_id: int | None = None,
 ) -> dict[str, Any]:
+    coin_bonus = db.scalar(
+        select(RebirthTierBonus).where(
+            RebirthTierBonus.rebirth_tier_id == tier.id,
+            RebirthTierBonus.bonus_key == "roll_coins",
+        )
+    )
     requirements = []
     for requirement in tier.requirements:
         owned = (
@@ -1137,6 +1403,7 @@ def serialize_rebirth_tier(
         "requiredCoins": tier.required_coins,
         "luckMultiplier": tier.luck_multiplier,
         "incomeMultiplier": tier.income_multiplier,
+        "coinMultiplier": coin_bonus.multiplier if coin_bonus else 1.0,
         "accent": tier.accent,
         "isActive": tier.is_active,
         "requirements": requirements,
@@ -1177,6 +1444,7 @@ def rebirth_payload(db: Session, user: User) -> dict[str, Any]:
         "completedTier": completed_tier,
         "luckMultiplier": luck_multiplier,
         "incomeMultiplier": income_multiplier,
+        "coinMultiplier": rebirth_coin_multiplier(db, user.id),
         "totalCoinsSpent": progress.total_coins_spent,
         "lastRebirthAt": iso(progress.last_rebirth_at),
         "next": serialized_next,
@@ -1238,7 +1506,7 @@ def game_snapshot(db: Session, user: User) -> dict[str, Any]:
         db.scalars(
             select(Card)
             .where(Card.is_active.is_(True))
-            .options(joinedload(Card.mutations))
+            .options(joinedload(Card.mutations), joinedload(Card.rarity_definition))
             .order_by(Card.rarity_tier.desc(), Card.base_weight.asc())
         ).unique().all()
     )
@@ -1253,6 +1521,7 @@ def game_snapshot(db: Session, user: User) -> dict[str, Any]:
     rebirth_luck, rebirth_income, completed_rebirths = rebirth_multipliers(
         db, user.id
     )
+    rebirth_coins = rebirth_coin_multiplier(db, user.id)
     luck = min(1_000_000_000.0, die_luck * potion_luck * rebirth_luck)
     dice_catalog = list(
         db.scalars(
@@ -1308,6 +1577,7 @@ def game_snapshot(db: Session, user: User) -> dict[str, Any]:
             "potionLuck": potion_luck,
             "rebirthLuck": rebirth_luck,
             "rebirthIncome": rebirth_income,
+            "rebirthCoins": rebirth_coins,
             "rebirths": completed_rebirths,
             "equippedDiceId": equipped.dice_id if equipped else None,
             "speed": speed,
@@ -1346,6 +1616,10 @@ def game_snapshot(db: Session, user: User) -> dict[str, Any]:
             ],
         },
         "rebirth": rebirth_payload(db, user),
+        "wallet": {
+            "balance": user.coins,
+            "transactions": wallet_history(db, user.id),
+        },
         "history": [
             {
                 "id": entry.id,
@@ -1461,6 +1735,7 @@ class CardInput(BaseModel):
     name: str = Field(min_length=1, max_length=80)
     subtitle: str = Field(default="", max_length=160)
     image_url: str = Field(default="", max_length=2000)
+    rarity_id: int | None = None
     rarity_name: str = Field(default="Common", min_length=1, max_length=32)
     rarity_tier: int = Field(default=0, ge=0, le=10)
     rarity_color: str = Field(default="#949ba4", max_length=16)
@@ -1470,6 +1745,15 @@ class CardInput(BaseModel):
     event_id: int | None = None
     is_active: bool = True
     mutation_ids: list[int] = Field(default_factory=list)
+
+
+class RarityInput(BaseModel):
+    name: str = Field(min_length=1, max_length=32)
+    description: str = Field(default="", max_length=180)
+    tier: int = Field(default=0, ge=0, le=1000)
+    color: str = Field(default="#949ba4", max_length=16)
+    icon_key: str = Field(default="spark", min_length=1, max_length=24)
+    is_active: bool = True
 
 
 class MutationInput(BaseModel):
@@ -1525,6 +1809,7 @@ class RebirthInput(BaseModel):
     required_coins: int = Field(ge=0, le=10**18)
     luck_multiplier: float = Field(default=1.15, gt=1, le=1000)
     income_multiplier: float = Field(default=1.15, gt=1, le=1000)
+    coin_multiplier: float = Field(default=1.15, gt=1, le=1000)
     accent: str = Field(default="#5865f2", max_length=16)
     is_active: bool = True
     requirements: list[RebirthRequirementInput] = Field(
@@ -1656,6 +1941,15 @@ def register(payload: RegisterInput, db: DB):
     db.add(user)
     try:
         db.flush()
+        db.add(
+            CoinTransaction(
+                user_id=user.id,
+                amount=user.coins,
+                balance_after=user.coins,
+                reason="welcome_bonus",
+                note="Стартовий баланс",
+            )
+        )
         for potion in db.scalars(select(Potion)).all():
             db.add(UserPotion(user_id=user.id, potion_id=potion.id, quantity=potion.starter_quantity))
         ensure_user_dice(db, user.id)
@@ -1706,6 +2000,7 @@ def roll(user: CurrentUser, db: DB):
     if not equipped:
         raise HTTPException(status_code=409, detail="Немає активного кубика для ролу.")
     rebirth_luck, rebirth_income, _ = rebirth_multipliers(db, user.id)
+    rebirth_coins = rebirth_coin_multiplier(db, user.id)
     luck = min(
         1_000_000_000.0,
         dice_luck(equipped.dice, equipped.level) * potion_luck * rebirth_luck,
@@ -1725,7 +2020,7 @@ def roll(user: CurrentUser, db: DB):
         db.scalars(
             select(Card)
             .where(Card.is_active.is_(True))
-            .options(joinedload(Card.mutations))
+            .options(joinedload(Card.mutations), joinedload(Card.rarity_definition))
         ).unique().all()
     )
     active_cards = [card for card in cards if card_available(card, live_ids)]
@@ -1778,12 +2073,23 @@ def roll(user: CurrentUser, db: DB):
             )
         )
     xp_earned = 6 + selected.rarity_tier * 4
-    coins_earned = max(1, int((12 + selected.rarity_tier * 8) * rebirth_income))
+    coins_earned = max(
+        25,
+        int((45 + selected.rarity_tier * 55) * rebirth_income * rebirth_coins),
+    )
     adjusted_chance = selected_weight / total_weight
     user.rolls += 1
     user.xp += xp_earned
     user.level = 1 + user.xp // 100
-    user.coins += coins_earned
+    change_coins(
+        db,
+        user,
+        coins_earned,
+        "roll_reward",
+        reference_type="card",
+        reference_id=selected.id,
+        note=selected.name,
+    )
     user.last_roll_at = now
     db.add(
         RollHistory(
@@ -1823,8 +2129,16 @@ def buy_dice(dice_id: int, user: CurrentUser, db: DB):
         raise HTTPException(status_code=409, detail=f"Потрібен рівень {die.required_level}.")
     accrue_income(db, user)
     if user.coins < die.unlock_cost:
-        raise HTTPException(status_code=409, detail="Недостатньо Rift Credits.")
-    user.coins -= die.unlock_cost
+        raise HTTPException(status_code=409, detail="Недостатньо Rift Coins.")
+    change_coins(
+        db,
+        user,
+        -die.unlock_cost,
+        "dice_purchase",
+        reference_type="dice",
+        reference_id=die.id,
+        note=die.name,
+    )
     already_equipped = db.scalar(
         select(func.count(UserDice.id)).where(UserDice.user_id == user.id, UserDice.is_equipped.is_(True))
     )
@@ -1868,8 +2182,16 @@ def upgrade_user_dice(dice_id: int, user: CurrentUser, db: DB):
         raise HTTPException(status_code=409, detail="Кубик уже має максимальний рівень.")
     accrue_income(db, user)
     if user.coins < cost:
-        raise HTTPException(status_code=409, detail="Недостатньо Rift Credits для прокачки.")
-    user.coins -= cost
+        raise HTTPException(status_code=409, detail="Недостатньо Rift Coins для прокачки.")
+    change_coins(
+        db,
+        user,
+        -cost,
+        "dice_upgrade",
+        reference_type="dice",
+        reference_id=owned.dice.id,
+        note=f"{owned.dice.name} · рівень {owned.level + 1}",
+    )
     owned.level += 1
     db.commit()
     return {"snapshot": game_snapshot(db, user)}
@@ -1923,7 +2245,7 @@ def buy_potion(
     accrue_income(db, user)
     total_price = offer.price * payload.packs
     if user.coins < total_price:
-        raise HTTPException(status_code=409, detail="Недостатньо Rift Credits.")
+        raise HTTPException(status_code=409, detail="Недостатньо Rift Coins.")
     owned = db.scalar(
         select(UserPotion)
         .where(UserPotion.user_id == user.id, UserPotion.potion_id == potion_id)
@@ -1932,7 +2254,15 @@ def buy_potion(
     if not owned:
         owned = UserPotion(user_id=user.id, potion_id=potion_id, quantity=0)
         db.add(owned)
-    user.coins -= total_price
+    change_coins(
+        db,
+        user,
+        -total_price,
+        "potion_purchase",
+        reference_type="potion",
+        reference_id=offer.potion_id,
+        note=f"{offer.potion.name} ×{offer.pack_size * payload.packs}",
+    )
     owned.quantity += offer.pack_size * payload.packs
     if offer.stock_limit > 0:
         offer.stock_remaining -= payload.packs
@@ -1989,7 +2319,15 @@ def buy_all_potions(user: CurrentUser, db: DB):
                 quantity=0,
             )
             db.add(owned)
-        user.coins -= offer.price
+        change_coins(
+            db,
+            user,
+            -offer.price,
+            "potion_purchase",
+            reference_type="potion",
+            reference_id=offer.potion_id,
+            note=f"{offer.potion.name} ×{offer.pack_size}",
+        )
         owned.quantity += offer.pack_size
         if offer.stock_limit > 0:
             offer.stock_remaining -= 1
@@ -2044,7 +2382,7 @@ def perform_rebirth(user: CurrentUser, db: DB):
     if user.coins < tier.required_coins:
         raise HTTPException(
             status_code=409,
-            detail=f"Потрібно ще {tier.required_coins - user.coins:,} Rift Credits.",
+            detail=f"Потрібно ще {tier.required_coins - user.coins:,} Rift Coins.",
         )
     requirements_and_rows: list[
         tuple[RebirthRequirement, list[InventoryItem]]
@@ -2103,10 +2441,18 @@ def perform_rebirth(user: CurrentUser, db: DB):
             }
         )
     old_balance = user.coins
-    user.coins = 0
+    change_coins(
+        db,
+        user,
+        -old_balance,
+        "rebirth_reset",
+        reference_type="rebirth",
+        reference_id=tier.id,
+        note=f"R{tier.tier} · {tier.name}",
+    )
     user.last_income_at = utcnow()
     progress.completed_tier = tier.tier
-    progress.total_coins_spent += tier.required_coins
+    progress.total_coins_spent += old_balance
     progress.last_rebirth_at = utcnow()
     db.commit()
     return {
@@ -2117,6 +2463,12 @@ def perform_rebirth(user: CurrentUser, db: DB):
             "consumed": consumed,
             "luckMultiplier": tier.luck_multiplier,
             "incomeMultiplier": tier.income_multiplier,
+            "coinMultiplier": db.scalar(
+                select(RebirthTierBonus.multiplier).where(
+                    RebirthTierBonus.rebirth_tier_id == tier.id,
+                    RebirthTierBonus.bonus_key == "roll_coins",
+                )
+            ) or 1.0,
         },
         "snapshot": game_snapshot(db, user),
     }
@@ -2253,7 +2605,16 @@ def players(user: CurrentUser, db: DB, q: str = ""):
 def admin_payload(db: Session) -> dict[str, Any]:
     events = list(db.scalars(select(GameEvent).order_by(GameEvent.created_at.desc())).all())
     live_ids = {event.id for event in events if event_is_live(event)}
-    cards = list(db.scalars(select(Card).options(joinedload(Card.mutations)).order_by(Card.rarity_tier.desc())).unique().all())
+    cards = list(
+        db.scalars(
+            select(Card)
+            .options(joinedload(Card.mutations), joinedload(Card.rarity_definition))
+            .order_by(Card.rarity_tier.desc())
+        ).unique().all()
+    )
+    rarities = list(
+        db.scalars(select(Rarity).order_by(Rarity.tier, Rarity.name)).all()
+    )
     mutations = list(db.scalars(select(Mutation).order_by(Mutation.chance.asc())).all())
     potions = list(db.scalars(select(Potion).order_by(Potion.name)).all())
     offers = list(
@@ -2281,6 +2642,7 @@ def admin_payload(db: Session) -> dict[str, Any]:
     )
     return {
         "cards": [serialize_card(card, live_ids) for card in cards],
+        "rarities": [serialize_rarity(rarity) for rarity in rarities],
         "dice": [serialize_dice(die) for die in dice_catalog],
         "mutations": [serialize_mutation(mutation, live_ids) for mutation in mutations],
         "events": [serialize_event(event) for event in events],
@@ -2349,9 +2711,86 @@ def admin_upload_image(
     return upload_image_to_cloud(file, purpose)
 
 
+def apply_rarity(rarity: Rarity, payload: RarityInput) -> None:
+    allowed_icons = {"circle", "diamond", "spark", "crown", "flame", "star", "nova"}
+    rarity.name = required_admin_text(payload.name, "Назва рідкості")
+    rarity.description = payload.description.strip()
+    rarity.tier = payload.tier
+    rarity.color = clean_color(payload.color, "#949ba4")
+    rarity.icon_key = payload.icon_key if payload.icon_key in allowed_icons else "spark"
+    rarity.is_active = payload.is_active
+
+
+def sync_rarity_cards(db: Session, rarity: Rarity) -> None:
+    cards = db.scalars(
+        select(Card)
+        .join(card_rarities, card_rarities.c.card_id == Card.id)
+        .where(card_rarities.c.rarity_id == rarity.id)
+    ).all()
+    for card in cards:
+        card.rarity_name = rarity.name
+        card.rarity_tier = rarity.tier
+        card.rarity_color = rarity.color
+
+
+@app.post("/api/admin/rarities")
+def create_rarity(payload: RarityInput, _: AdminUser, db: DB):
+    rarity = Rarity(name=payload.name)
+    apply_rarity(rarity, payload)
+    db.add(rarity)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Рідкість із такою назвою вже існує.")
+    return finalized_admin_payload(db)
+
+
+@app.put("/api/admin/rarities/{item_id}")
+def update_rarity(item_id: int, payload: RarityInput, _: AdminUser, db: DB):
+    rarity = db.get(Rarity, item_id)
+    if not rarity:
+        raise HTTPException(status_code=404, detail="Рідкість не знайдено.")
+    apply_rarity(rarity, payload)
+    sync_rarity_cards(db, rarity)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Рідкість із такою назвою вже існує.")
+    return finalized_admin_payload(db)
+
+
+@app.delete("/api/admin/rarities/{item_id}")
+def delete_rarity(item_id: int, _: AdminUser, db: DB):
+    rarity = db.get(Rarity, item_id)
+    if not rarity:
+        raise HTTPException(status_code=404, detail="Рідкість не знайдено.")
+    used = db.scalar(
+        select(func.count()).select_from(card_rarities).where(
+            card_rarities.c.rarity_id == item_id
+        )
+    ) or 0
+    if used:
+        raise HTTPException(
+            status_code=409,
+            detail="Ця рідкість використовується картками. Спочатку зміни їхню рідкість.",
+        )
+    db.delete(rarity)
+    db.commit()
+    return finalized_admin_payload(db)
+
+
 def apply_card(db: Session, card: Card, payload: CardInput) -> None:
     name = required_admin_text(payload.name, "Назва картки")
-    rarity_name = required_admin_text(payload.rarity_name, "Назва рідкості")
+    rarity = db.get(Rarity, payload.rarity_id) if payload.rarity_id else None
+    if payload.rarity_id and not rarity:
+        raise HTTPException(status_code=400, detail="Вибрана рідкість не існує.")
+    rarity_name = (
+        rarity.name
+        if rarity
+        else required_admin_text(payload.rarity_name, "Назва рідкості")
+    )
     event_id = validate_event_link(
         db,
         event_only=payload.event_only,
@@ -2369,9 +2808,14 @@ def apply_card(db: Session, card: Card, payload: CardInput) -> None:
     card.name = name
     card.subtitle = payload.subtitle.strip()
     card.image_url = payload.image_url.strip()
+    card.rarity_definition = rarity
     card.rarity_name = rarity_name
-    card.rarity_tier = payload.rarity_tier
-    card.rarity_color = clean_color(payload.rarity_color, "#949ba4")
+    card.rarity_tier = rarity.tier if rarity else payload.rarity_tier
+    card.rarity_color = (
+        rarity.color
+        if rarity
+        else clean_color(payload.rarity_color, "#949ba4")
+    )
     card.base_weight = payload.base_weight
     card.income_per_second = payload.income_per_second
     card.event_only = payload.event_only
@@ -2704,6 +3148,20 @@ def apply_rebirth_tier(
     tier.is_active = payload.is_active
     tier.requirements.clear()
     tier.requirements.extend(requirements)
+    if tier.id is not None:
+        coin_bonus = db.scalar(
+            select(RebirthTierBonus).where(
+                RebirthTierBonus.rebirth_tier_id == tier.id,
+                RebirthTierBonus.bonus_key == "roll_coins",
+            )
+        )
+        if not coin_bonus:
+            coin_bonus = RebirthTierBonus(
+                rebirth_tier_id=tier.id,
+                bonus_key="roll_coins",
+            )
+            db.add(coin_bonus)
+        coin_bonus.multiplier = payload.coin_multiplier
 
 
 @app.post("/api/admin/rebirths")
@@ -2713,9 +3171,10 @@ def create_rebirth_tier(payload: RebirthInput, _: AdminUser, db: DB):
         name=payload.name.strip(),
         required_coins=payload.required_coins,
     )
-    apply_rebirth_tier(db, tier, payload)
     db.add(tier)
     try:
+        db.flush()
+        apply_rebirth_tier(db, tier, payload)
         db.commit()
     except IntegrityError:
         db.rollback()
