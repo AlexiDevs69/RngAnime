@@ -617,11 +617,12 @@
 
       .home-grid {
         display: grid;
-        grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+        grid-template-columns: minmax(0, 1fr) 370px;
         gap: 16px;
+        align-items: start;
       }
       .hero-panel {
-        min-height: 340px;
+        min-height: 430px;
         display: grid;
         grid-template-columns: 1.1fr 0.9fr;
         overflow: hidden;
@@ -650,6 +651,19 @@
         display: flex;
         gap: 9px;
         flex-wrap: wrap;
+      }
+      .hero-progress {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 28px;
+        padding-top: 18px;
+        border-top: 1px solid var(--border-soft);
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .hero-progress b {
+        color: var(--text);
       }
       .hero-art {
         position: relative;
@@ -709,6 +723,10 @@
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
       }
+      .home-rail {
+        display: grid;
+        gap: 12px;
+      }
       .stat-card {
         min-height: 105px;
         padding: 17px;
@@ -735,6 +753,72 @@
       }
       .wide-section {
         margin-top: 22px;
+      }
+
+      .hour-spotlight {
+        overflow: hidden;
+        border-top: 3px solid var(--rarity, #949ba4);
+        padding: 16px;
+      }
+      .hour-spotlight-head,
+      .hour-spotlight-card,
+      .hour-spotlight-meta {
+        display: flex;
+        align-items: center;
+      }
+      .hour-spotlight-head {
+        justify-content: space-between;
+        color: var(--muted);
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+      }
+      .hour-spotlight-head .eyebrow {
+        margin: 0;
+        color: var(--rarity, var(--muted));
+      }
+      .hour-spotlight-card {
+        gap: 12px;
+        margin: 14px 0;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--border);
+      }
+      .hour-spotlight .hour-art {
+        width: 72px;
+        height: 72px;
+        flex: none;
+      }
+      .hour-spotlight .hour-copy {
+        min-width: 0;
+      }
+      .hour-spotlight .hour-copy h3 {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .hour-spotlight-meta {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 4px 12px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .hour-spotlight-meta strong {
+        color: var(--text);
+        text-align: right;
+      }
+      .empty-hour {
+        min-height: 175px;
+      }
+      .empty-hour > strong {
+        display: block;
+        margin-top: 28px;
+        color: var(--text);
+        font-size: 17px;
+      }
+      .empty-hour > p {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 12px;
       }
 
       .hour-card {
@@ -1586,7 +1670,7 @@
       }
       .profile-stats {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
         gap: 5px;
         margin: 16px 0;
       }
@@ -1769,6 +1853,227 @@
         color: var(--normal);
       }
 
+      .shop-layout {
+        display: grid;
+        grid-template-columns: 230px minmax(0, 1fr);
+        gap: 14px;
+        align-items: start;
+      }
+      .shop-tabs {
+        position: sticky;
+        top: 76px;
+        display: grid;
+        gap: 5px;
+        padding: 6px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg-side);
+      }
+      .shop-tabs button {
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        column-gap: 10px;
+        padding: 11px;
+        border: 0;
+        border-radius: 5px;
+        background: transparent;
+        color: var(--muted);
+        text-align: left;
+        cursor: pointer;
+      }
+      .shop-tabs button:hover { background: rgba(255, 255, 255, 0.045); }
+      .shop-tabs button.active { background: #42444b; color: var(--text); }
+      .shop-tabs button > span {
+        grid-row: 1/3;
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 5px;
+        background: #25272b;
+        font-size: 20px;
+      }
+      .shop-tabs b { align-self: end; }
+      .shop-tabs small {
+        overflow: hidden;
+        color: var(--muted);
+        font-size: 10px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .shop-content { min-width: 0; }
+      .shop-content-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 12px;
+        padding: 0 2px;
+      }
+      .shop-content-head h2 { margin: 0; color: var(--text); font-size: 19px; }
+      .shop-content-head p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+      .restock-badge {
+        padding: 5px 8px;
+        border-radius: 4px;
+        background: rgba(88, 101, 242, 0.14);
+        color: #aeb4ff;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+      }
+      .product-list { display: grid; gap: 9px; }
+      .product-row {
+        min-height: 154px;
+        display: grid;
+        grid-template-columns: 118px minmax(0, 1fr) 150px;
+        gap: 16px;
+        align-items: center;
+        padding: 15px;
+        border-left: 3px solid var(--product, var(--border-soft));
+      }
+      .product-visual {
+        min-width: 0;
+        height: 118px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        border-radius: 6px;
+        background: #232428;
+      }
+      .product-visual .dice-scene.compact { transform: scale(0.9); }
+      .potion-product span {
+        width: 72px;
+        height: 82px;
+        display: grid;
+        place-items: center;
+        border: 3px solid color-mix(in srgb, var(--product) 75%, #fff);
+        border-radius: 20px 20px 30px 30px;
+        background: color-mix(in srgb, var(--product) 28%, #1f2023);
+        color: var(--product);
+        font-size: 35px;
+      }
+      .product-copy { min-width: 0; }
+      .product-title { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+      .product-title h3 { margin: 0; color: var(--text); font-size: 20px; }
+      .product-copy > p { margin: 7px 0 12px; color: var(--muted); font-size: 13px; }
+      .stock-pill {
+        flex: none;
+        padding: 4px 7px;
+        border-radius: 4px;
+        background: rgba(35, 165, 90, 0.13);
+        color: #72dfa0;
+        font-size: 10px;
+        font-weight: 750;
+      }
+      .stock-pill.sold { background: rgba(242, 63, 66, 0.13); color: #ff9b9d; }
+      .stock-pill.owned { background: rgba(88, 101, 242, 0.14); color: #aeb4ff; }
+      .product-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+      .product-stats span {
+        padding: 5px 7px;
+        border-radius: 4px;
+        background: #25272b;
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .product-stats b { color: var(--normal); }
+      .restock-line { display: flex; gap: 8px; margin-top: 9px; color: var(--muted); font-size: 10px; }
+      .restock-line b { color: #6ddcff; font-variant-numeric: tabular-nums; }
+      .product-buy {
+        display: grid;
+        gap: 7px;
+        padding-left: 15px;
+        border-left: 1px solid var(--border);
+      }
+      .product-buy > strong { color: var(--text); font-size: 19px; }
+      .product-buy > small { margin-top: -7px; color: var(--muted); font-size: 10px; }
+      .product-buy button { width: 100%; }
+
+      .rebirth-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 290px;
+        gap: 14px;
+        align-items: start;
+      }
+      .rebirth-main {
+        overflow: hidden;
+        border-top: 3px solid var(--rebirth);
+        padding: 24px;
+      }
+      .rebirth-title {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 20px;
+        padding-bottom: 22px;
+        border-bottom: 1px solid var(--border);
+      }
+      .rebirth-title > div:first-child { display: flex; gap: 15px; min-width: 0; }
+      .rebirth-number {
+        width: 58px; height: 58px; display: grid; place-items: center; flex: none;
+        border-radius: 8px;
+        background: color-mix(in srgb, var(--rebirth) 18%, #25272b);
+        color: var(--rebirth); font-size: 20px; font-weight: 850;
+      }
+      .rebirth-title h2 { margin: 0; color: var(--text); font-size: 23px; }
+      .rebirth-title p { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+      .rebirth-rewards { display: flex; gap: 7px; flex: none; }
+      .rebirth-rewards span { min-width: 105px; padding: 10px; border-radius: 5px; background: #25272b; }
+      .rebirth-rewards small, .rebirth-rewards b { display: block; }
+      .rebirth-rewards small { color: var(--muted); font-size: 9px; text-transform: uppercase; }
+      .rebirth-rewards b { margin-top: 3px; color: var(--text); }
+      .coin-requirement { margin: 22px 0; }
+      .coin-requirement > div:first-child { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; color: var(--muted); font-size: 12px; }
+      .coin-requirement b { color: var(--text); }
+      .progress-track { height: 8px; overflow: hidden; border-radius: 4px; background: #1e1f22; }
+      .progress-track i { display: block; height: 100%; border-radius: inherit; background: var(--rebirth); }
+      .requirement-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .requirement-row {
+        display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; align-items: center; gap: 10px;
+        padding: 9px; border: 1px solid var(--border); border-left: 3px solid var(--requirement);
+        border-radius: 6px; background: #25272b;
+      }
+      .requirement-row.ready { border-color: rgba(35, 165, 90, 0.5); border-left-color: var(--green); }
+      .requirement-art { width: 54px; height: 54px; overflow: hidden; border-radius: 4px; }
+      .requirement-art > .card-art { width: 100%; height: 100%; aspect-ratio: auto; }
+      .requirement-row strong, .requirement-row small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+      .requirement-row strong { color: var(--text); font-size: 12px; }
+      .requirement-row small { color: var(--muted); font-size: 9px; }
+      .requirement-row > b { color: var(--normal); font-size: 12px; }
+      .rebirth-warning {
+        display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px;
+        margin-top: 18px; padding: 12px; border-radius: 6px;
+        background: rgba(240, 178, 50, 0.09); color: var(--muted); font-size: 12px;
+      }
+      .rebirth-warning > span { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: rgba(240, 178, 50, 0.15); color: var(--yellow); font-weight: 900; }
+      .rebirth-warning p { margin: 0; }
+      .rebirth-warning b { color: var(--normal); }
+      .rebirth-button { width: 100%; min-height: 48px; margin-top: 14px; border: 0; border-radius: 5px; background: var(--rebirth); color: #fff; font-weight: 800; cursor: pointer; }
+      .rebirth-side { display: grid; gap: 10px; }
+      .permanent-card, .roadmap { padding: 17px; }
+      .permanent-card > div { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+      .permanent-card strong { color: var(--text); font-size: 21px; }
+      .permanent-card small, .permanent-card p { color: var(--muted); font-size: 11px; }
+      .roadmap-step { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 9px; align-items: center; padding: 8px 0; opacity: 0.52; }
+      .roadmap-step > span { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: #25272b; color: var(--muted); font-size: 10px; font-weight: 800; }
+      .roadmap-step strong, .roadmap-step small { display: block; }
+      .roadmap-step strong { color: var(--normal); font-size: 11px; }
+      .roadmap-step small { color: var(--muted); font-size: 9px; }
+      .roadmap-step.done, .roadmap-step.current { opacity: 1; }
+      .roadmap-step.done > span { background: rgba(35, 165, 90, 0.14); color: #72dfa0; }
+      .roadmap-step.current > span { background: rgba(88, 101, 242, 0.16); color: #aeb4ff; }
+      .rebirth-max { min-height: 420px; display: grid; place-items: center; align-content: center; padding: 30px; text-align: center; }
+      .rebirth-max > span { color: var(--green); font-size: 60px; }
+      .rebirth-max h2 { margin: 5px 0; color: var(--text); }
+      .rebirth-max p { color: var(--muted); }
+      .confirm-rebirth, .rebirth-complete { padding: 26px; text-align: center; }
+      .confirm-rebirth > span, .rebirth-complete > span { color: #aeb4ff; font-size: 50px; }
+      .confirm-rebirth h3, .rebirth-complete h2 { margin: 4px 0; color: var(--text); }
+      .confirm-rebirth p, .rebirth-complete p { color: var(--muted); }
+      .confirm-rebirth > div, .rebirth-complete > div { display: flex; justify-content: center; gap: 8px; }
+      .confirm-rebirth > div b, .rebirth-complete > div b { padding: 7px 10px; border-radius: 4px; background: #25272b; color: var(--normal); }
+      .rebirth-complete button { min-width: 180px; margin-top: 20px; }
+
       .potion-grid,
       .event-grid {
         display: grid;
@@ -1848,6 +2153,7 @@
         gap: 3px;
         margin-bottom: 16px;
         padding: 4px;
+        overflow-x: auto;
         border-radius: 5px;
         background: var(--bg-side);
       }
@@ -1906,6 +2212,13 @@
         display: flex;
         gap: 6px;
       }
+      .form-error { min-height: 18px; margin: 14px 0 0; color: #ff9b9d; font-size: 12px; }
+      .admin-form-section { display: grid; gap: 13px; padding: 15px; border: 1px solid var(--border); border-radius: 6px; background: #25272b; }
+      .requirement-editor-head { display: flex; align-items: end; justify-content: space-between; gap: 12px; }
+      .requirement-editor-head small { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; }
+      .requirement-editor-list { display: grid; gap: 7px; }
+      .requirement-editor { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(130px, 0.7fr) 100px 36px; gap: 8px; align-items: end; padding: 10px; border: 1px solid var(--border); border-radius: 5px; background: #25272b; }
+      .requirement-remove { width: 36px; min-height: 38px; padding: 0; font-size: 18px; }
 
       .hud {
         position: fixed;
@@ -2202,6 +2515,9 @@
         .home-grid {
           grid-template-columns: 1fr;
         }
+        .home-rail {
+          grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+        }
         .hero-panel {
           min-height: 320px;
         }
@@ -2218,6 +2534,11 @@
         .dice-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
+        .shop-layout { grid-template-columns: 200px minmax(0, 1fr); }
+        .product-row { grid-template-columns: 100px minmax(0, 1fr) 135px; gap: 12px; }
+        .product-visual { height: 104px; }
+        .rebirth-layout { grid-template-columns: 1fr; }
+        .rebirth-side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
       @media (max-width: 800px) {
         .auth-wrap {
@@ -2296,6 +2617,16 @@
           max-width: 420px;
           width: 100%;
         }
+        .shop-layout { grid-template-columns: 1fr; }
+        .shop-tabs { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .product-row { grid-template-columns: 100px minmax(0, 1fr); }
+        .product-buy { grid-column: 1/-1; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; padding: 12px 0 0; border-left: 0; border-top: 1px solid var(--border); }
+        .product-buy > small { display: none; }
+        .rebirth-title { flex-direction: column; }
+        .rebirth-rewards { width: 100%; }
+        .rebirth-rewards span { flex: 1; }
+        .requirement-editor { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .requirement-remove { width: 100%; }
         .hud {
           right: 10px;
           bottom: 74px;
@@ -2339,6 +2670,7 @@
         .hero-copy h2 {
           font-size: 27px;
         }
+        .home-rail { grid-template-columns: 1fr; }
         .card-grid {
           gap: 8px;
         }
@@ -2373,6 +2705,21 @@
         .event-grid {
           grid-template-columns: 1fr;
         }
+        .shop-tabs button { grid-template-columns: 30px minmax(0, 1fr); padding: 9px; }
+        .shop-tabs button > span { width: 30px; height: 34px; font-size: 16px; }
+        .product-row { grid-template-columns: 1fr; }
+        .product-visual { height: 112px; }
+        .product-buy { grid-column: auto; grid-template-columns: 1fr; }
+        .product-buy > small { display: block; }
+        .product-title { flex-direction: column; }
+        .rebirth-main { padding: 16px; }
+        .rebirth-title > div:first-child { flex-direction: column; }
+        .rebirth-rewards, .rebirth-side { grid-template-columns: 1fr; }
+        .rebirth-rewards { flex-direction: column; }
+        .rebirth-side { display: grid; }
+        .requirement-grid { grid-template-columns: 1fr; }
+        .requirement-editor-head { align-items: start; flex-direction: column; }
+        .requirement-editor { grid-template-columns: 1fr; }
         .showcase {
           padding: 14px;
         }
@@ -2534,6 +2881,7 @@
           ><span>Завантаження…</span>
         </button>
         <div class="topbar-right">
+          <div class="currency rebirth-currency"><i>↟</i><span id="top-rebirths">R0</span></div>
           <div class="currency"><i>◆</i><span id="top-coins">0</span></div>
           <button class="profile-chip" onclick="openOwnProfile()">
             <span id="top-avatar" class="avatar">R</span
@@ -2559,6 +2907,9 @@
           </div>
           <div class="sidebar-stat">
             <span>Індекс</span><b id="side-index">0/0</b>
+          </div>
+          <div class="sidebar-stat">
+            <span>Ребірт</span><b id="side-rebirths">R0</b>
           </div>
         </div>
       </aside>
@@ -2591,16 +2942,19 @@
         editingShowcase: false,
         admin: null,
         adminTab: "cards",
+        shopTab: "dice",
+        shopRefreshing: false,
         now: Date.now(),
       };
       const navBase = [
         ["home", "⌂", "Головна"],
-        ["roll", "↻", "Крутка"],
-        ["dice", "⬡", "Кубики"],
-        ["index", "▤", "Індекс"],
+        ["roll", "◇", "Рол"],
+        ["shop", "▣", "Магазин"],
+        ["rebirth", "↟", "Ребірти"],
         ["collection", "▦", "Колекція"],
+        ["index", "▤", "Індекс"],
+        ["dice", "⬡", "Мої кубики"],
         ["profile", "◎", "Профіль"],
-        ["potions", "⚗", "Зілля"],
         ["events", "◷", "Івенти"],
       ];
       const $ = (id) => document.getElementById(id);
@@ -2738,8 +3092,18 @@
           throw new Error(data.detail || "Потрібен вхід.");
         }
         if (!response.ok) {
+          const detail = Array.isArray(data.detail)
+            ? data.detail
+                .map((item) => {
+                  const field = Array.isArray(item.loc)
+                    ? item.loc[item.loc.length - 1]
+                    : "поле";
+                  return `${field}: ${item.msg || "некоректне значення"}`;
+                })
+                .join(" · ")
+            : data.detail;
           const err = new Error(
-            data.detail || data.error || "Запит не виконано.",
+            detail || data.error || "Запит не виконано.",
           );
           err.retry = Number(response.headers.get("Retry-After-Ms") || 0);
           throw err;
@@ -2845,6 +3209,8 @@
         $("side-dice").textContent = state.game.equippedDice?.name || "—";
         $("side-income").textContent = money(p.totalIncomePerSecond) + "/s";
         $("side-index").textContent = `${p.uniqueOwned}/${p.totalCards}`;
+        $("side-rebirths").textContent = `R${p.rebirths}`;
+        $("top-rebirths").textContent = `R${p.rebirths}`;
         const event = state.game.events.find((x) => x.isLive),
           top = $("top-event");
         top.innerHTML = event
@@ -2904,7 +3270,7 @@
       function render() {
         if (!state.game) return;
         $("main").innerHTML =
-          `<div class="page">${({ home: renderHome, roll: renderRoll, dice: renderDice, index: renderIndex, collection: renderCollection, potions: renderPotions, events: renderEvents, admin: renderAdmin }[state.view] || renderHome)()}</div>`;
+          `<div class="page">${({ home: renderHome, roll: renderRoll, shop: renderShop, rebirth: renderRebirth, dice: renderDice, index: renderIndex, collection: renderCollection, events: renderEvents, admin: renderAdmin }[state.view] || renderHome)()}</div>`;
         renderHud();
       }
       function renderHome() {
@@ -2912,8 +3278,11 @@
           p = g.player,
           event = g.events.find((x) => x.isLive),
           champ = g.hourlyChampion;
-        const topCards = g.cards.filter((x) => x.availableNow).slice(0, 4);
-        return `${pageHead("Anime RNG", "Головна", `Рівень ${p.level} · ${compact(p.rolls)} ролів · Luck ${formatLuck(p.luck)}`)}<div class="home-grid"><section class="panel hero-panel"><div class="hero-copy"><span class="eyebrow">${event ? "Активний івент" : "Постійний пул"}</span><h2>${event ? esc(event.name) : "Куб готовий до нового ролу"}</h2><p>${event ? esc(event.description) : "Роль, збирай картки, заробляй Rift Credits і відкривай сильніші кубики."}</p><div class="hero-actions"><button class="primary" onclick="go('roll')">Зробити рол</button><button class="ghost" onclick="go('dice')">Кубики та прокачка</button></div></div><div class="hero-art">${diceMarkup(g.equippedDice)}<div class="hero-badge"><b>${esc(g.equippedDice?.name || "Origin Cube")} · LVL ${g.equippedDice?.level || 1}</b>${formatLuck(g.equippedDice?.currentLuck || 1)} базового luck</div></div></section><div class="stats-grid"><div class="stat-card"><span>Колекція</span><strong>${p.uniqueOwned}/${p.totalCards}</strong><small>унікальних карток</small></div><div class="stat-card"><span>Дохід</span><strong>${money(p.totalIncomePerSecond)}/s</strong><small>пасивно з колекції</small></div><div class="stat-card"><span>Luck</span><strong>${formatLuck(p.luck)}</strong><small>кубик × активні зілля</small></div><div class="stat-card"><span>Баланс</span><strong>${money(p.coins)}</strong><small>rift credits</small></div></div></div><section class="wide-section"><div class="section-head"><div><h2>Roll of the Hour</h2><p>Найрідкісніше глобальне випадіння поточної години.</p></div><span class="eyebrow">оновлення через ${remaining(g.hourEndsAt)}</span></div>${champ ? `<article class="panel hour-card" style="--rarity:${esc(champ.mutationColor || champ.rarityColor)}"><div class="hour-art">${art(champ)}</div><div class="hour-copy"><small>@${esc(champ.playerHandle)} · ${esc(champ.playerName)}</small><h3>${esc(champ.name)}</h3><p><b>${esc(champ.mutationName || champ.rarityName)}</b> · Luck ${formatLuck(champ.effectiveLuck)}</p></div><div class="hour-odds"><strong>1 / ${compact(Math.round(champ.oddsDenominator))}</strong><span>${money(champ.incomePerSecond)}/s</span></div></article>` : `<div class="empty"><strong>Цього часу ще ніхто не ролив</strong>Перший сильний рол одразу з’явиться тут.</div>`}</section><section class="wide-section"><div class="section-head"><div><h2>Активний пул</h2><p>Картки з найвищими рівнями рідкості, доступні зараз.</p></div><button class="text-button" onclick="go('index')">Дивитися весь Index</button></div><div class="card-grid">${topCards.map((c) => gameCard(c, { locked: false })).join("")}</div></section>`;
+        const topCards = g.cards.filter((x) => x.availableNow).slice(0, 4),
+          hourly = champ
+            ? `<article class="panel hour-spotlight" style="--rarity:${esc(champ.mutationColor || champ.rarityColor)}"><div class="hour-spotlight-head"><span class="eyebrow">ROLL OF THE HOUR</span><span>${remaining(g.hourEndsAt)}</span></div><div class="hour-spotlight-card"><div class="hour-art">${art(champ)}</div><div class="hour-copy"><small>@${esc(champ.playerHandle)}</small><h3>${esc(champ.name)}</h3><p><b>${esc(champ.mutationName || champ.rarityName)}</b></p></div></div><div class="hour-spotlight-meta"><span>Шанс випадіння</span><strong>1 / ${compact(Math.round(champ.oddsDenominator))}</strong><span>Дохід картки</span><strong>${money(champ.incomePerSecond)}/s</strong></div></article>`
+            : `<article class="panel hour-spotlight empty-hour"><div class="hour-spotlight-head"><span class="eyebrow">ROLL OF THE HOUR</span><span>${remaining(g.hourEndsAt)}</span></div><strong>Місце вільне</strong><p>Перший рідкісний рол цієї години з’явиться тут.</p></article>`;
+        return `${pageHead("Anime RNG", "Головна", `Рівень ${p.level} · ${compact(p.rolls)} ролів · R${p.rebirths}`, '<button class="ghost" onclick="go(\'shop\')">Відкрити магазин</button><button class="primary" onclick="go(\'roll\')">Ролити</button>')}<div class="home-grid"><section class="panel hero-panel"><div class="hero-copy"><span class="eyebrow">${event ? "Активний івент" : "Твій наступний рол"}</span><h2>${event ? esc(event.name) : "Куб заряджений і готовий"}</h2><p>${event ? esc(event.description) : "Роль картки, збирай потрібні дублікати, купуй зілля та готуйся до наступного ребірту."}</p><div class="hero-actions"><button class="primary" onclick="go('roll')">Зробити рол</button><button class="ghost" onclick="go('shop')">Магазин</button><button class="ghost" onclick="go('rebirth')">Прогрес ребірту</button></div><div class="hero-progress"><span><b>${formatLuck(p.luck)}</b> загальний luck</span><span><b>${formatLuck(p.rebirthLuck)}</b> постійний бонус</span></div></div><div class="hero-art">${diceMarkup(g.equippedDice)}<div class="hero-badge"><b>${esc(g.equippedDice?.name || "Origin Cube")} · LVL ${g.equippedDice?.level || 1}</b>${formatLuck(g.equippedDice?.currentLuck || 1)} luck кубика</div></div></section><aside class="home-rail">${hourly}<div class="stats-grid"><div class="stat-card"><span>Баланс</span><strong>${money(p.coins)}</strong><small>Rift Credits</small></div><div class="stat-card"><span>Дохід</span><strong>${money(p.totalIncomePerSecond)}/s</strong><small>${formatLuck(p.rebirthIncome)} від ребіртів</small></div><div class="stat-card"><span>Колекція</span><strong>${p.uniqueOwned}/${p.totalCards}</strong><small>унікальних карток</small></div><div class="stat-card"><span>Ребірт</span><strong>R${p.rebirths}</strong><small>${g.rebirth.next ? `далі ${money(g.rebirth.next.requiredCoins)}` : "максимум"}</small></div></div></aside></div><section class="wide-section"><div class="section-head"><div><h2>Активний пул</h2><p>Найцінніші картки, які доступні прямо зараз.</p></div><button class="text-button" onclick="go('index')">Весь Index</button></div><div class="card-grid">${topCards.map((c) => gameCard(c, { locked: false })).join("")}</div></section>`;
       }
       function renderRoll() {
         const g = state.game;
@@ -2946,10 +3315,77 @@
           render();
         }
       }
+      function renderShop() {
+        const g = state.game,
+          p = g.player,
+          tabs = `<div class="shop-tabs"><button class="${state.shopTab === "dice" ? "active" : ""}" onclick="state.shopTab='dice';render()"><span>⬡</span><b>Кубики</b><small>Новий luck і прогресія</small></button><button class="${state.shopTab === "potions" ? "active" : ""}" onclick="state.shopTab='potions';render()"><span>⚗</span><b>Зілля</b><small>Тимчасові бусти</small></button></div>`;
+        if (state.shopTab === "potions") {
+          const offers = g.shop?.potions || [],
+            products = offers.map((offer) => {
+              const inventory = g.potions.find((item) => item.id === offer.potionId),
+                active = inventory?.activeUntil && new Date(inventory.activeUntil).getTime() > state.now,
+                soldOut = offer.stockRemaining !== null && offer.stockRemaining < 1,
+                locked = !offer.unlocked,
+                canBuy = !soldOut && !locked && p.coins >= offer.price;
+              return `<article class="panel product-row" style="--product:${esc(offer.color)}"><div class="product-visual potion-product"><span>⚗</span></div><div class="product-copy"><div class="product-title"><div><span class="eyebrow">${offer.effectType === "luck" ? "LUCK POTION" : "SPEED POTION"}</span><h3>${esc(offer.name)}</h3></div><span class="stock-pill ${soldOut ? "sold" : ""}">${offer.stockRemaining === null ? "∞ у продажу" : soldOut ? "Продано" : `${offer.stockRemaining} пак.`}</span></div><p>${esc(offer.description)}</p><div class="product-stats"><span><b>${offer.multiplier}×</b> ${offer.effectType}</span><span><b>${Math.round(offer.durationSeconds / 60)} хв</b> дія</span><span><b>×${offer.packSize}</b> у пакеті</span><span><b>×${offer.ownedQuantity}</b> у тебе</span></div>${offer.restockAt ? `<div class="restock-line"><span>Наступний restock</span><b>${remaining(offer.restockAt)}</b></div>` : ""}</div><div class="product-buy"><strong>${money(offer.price)}</strong><small>${locked ? `Потрібно R${offer.requiredRebirths}` : soldOut ? "Чекай restock" : `за ×${offer.packSize}`}</small><button class="primary" onclick="buyPotion(${offer.potionId})" ${canBuy ? "" : "disabled"}>Купити</button>${offer.ownedQuantity > 0 ? `<button class="ghost" onclick="usePotion(${offer.potionId})">${active ? `Активне ${remaining(inventory.activeUntil)}` : "Активувати"}</button>` : ""}</div></article>`;
+            }).join("");
+          return `${pageHead("Rift Market", "Магазин", `Баланс ${money(p.coins)} · асортимент оновлюється автоматично`, '<button class="ghost" onclick="buyAllPotions()">Купити по одному</button>')}<div class="shop-layout">${tabs}<section class="shop-content"><div class="shop-content-head"><div><h2>Зілля</h2><p>Куплені зілля потрапляють у твій інвентар. Активувати їх можна прямо тут.</p></div><span class="restock-badge">RESTOCK</span></div><div class="product-list">${products || '<div class="empty">У магазині поки немає зіль.</div>'}</div></section></div>`;
+        }
+        const diceProducts = g.dice.map((die) => {
+          const levelLocked = p.level < die.requiredLevel,
+            moneyLocked = p.coins < die.unlockCost,
+            locked = levelLocked || moneyLocked,
+            status = die.owned ? (die.isEquipped ? "Використовується" : "У колекції") : levelLocked ? `Потрібен рівень ${die.requiredLevel}` : "Доступний";
+          return `<article class="panel product-row dice-product-row" style="--product:${esc(die.faceColor)}"><div class="product-visual">${diceMarkup(die, true)}</div><div class="product-copy"><div class="product-title"><div><span class="eyebrow">${die.isStarter ? "STARTER DICE" : "DICE"}</span><h3>${esc(die.name)}</h3></div><span class="stock-pill ${die.owned ? "owned" : ""}">${status}</span></div><p>${esc(die.description)}</p><div class="product-stats"><span><b>${formatLuck(die.baseLuck)}</b> base luck</span><span><b>${die.maxLevel}</b> рівнів</span><span><b>${die.luckGrowth}×</b> за рівень</span><span><b>LVL ${die.requiredLevel}</b> вимога</span></div></div><div class="product-buy"><strong>${die.owned ? `LVL ${die.level}` : money(die.unlockCost)}</strong><small>${die.owned ? `${formatLuck(die.currentLuck)} зараз` : "одноразова купівля"}</small>${die.owned ? `<button class="ghost" onclick="go('dice')">Прокачка</button>` : `<button class="primary" onclick="diceAction('buy',${die.id})" ${locked ? "disabled" : ""}>Купити кубик</button>`}</div></article>`;
+        }).join("");
+        return `${pageHead("Rift Market", "Магазин", `Баланс ${money(p.coins)} · обраний ${esc(g.equippedDice?.name || "кубик")}`)}<div class="shop-layout">${tabs}<section class="shop-content"><div class="shop-content-head"><div><h2>Кубики</h2><p>Кожен кубик купується один раз, а потім прокачується окремо.</p></div><span class="restock-badge">DICE</span></div><div class="product-list">${diceProducts}</div></section></div>`;
+      }
+      async function buyPotion(id, packs = 1) {
+        try {
+          const data = await api(`/api/shop/potions/${id}/buy`, { method: "POST", body: JSON.stringify({ packs }) });
+          state.game = data.snapshot;
+          renderChrome(); render();
+          toast(`Куплено ${data.purchased.name} ×${data.purchased.quantity}.`);
+        } catch (e) { toast(e.message, "error"); }
+      }
+      async function buyAllPotions() {
+        try {
+          const data = await api("/api/shop/buy-all-potions", { method: "POST" });
+          state.game = data.snapshot;
+          renderChrome(); render();
+          toast(`Куплено позицій: ${data.purchased.length}.`);
+        } catch (e) { toast(e.message, "error"); }
+      }
+      function renderRebirth() {
+        const g = state.game, p = g.player, rebirth = g.rebirth, next = rebirth.next;
+        if (!next)
+          return `${pageHead("Постійна прогресія", "Ребірти", `Ти завершив усі доступні рівні · R${rebirth.completedTier}`)}<div class="panel rebirth-max"><span>↟</span><h2>Максимальний ребірт</h2><p>Поточні постійні бонуси: ${formatLuck(rebirth.luckMultiplier)} luck і ${formatLuck(rebirth.incomeMultiplier)} доходу.</p></div>`;
+        const coinProgress = next.requiredCoins > 0 ? Math.min(100, (p.coins / next.requiredCoins) * 100) : 100,
+          requirements = next.requirements.map((item) => `<article class="requirement-row ${item.ready ? "ready" : ""}" style="--requirement:${esc(item.mutationColor || item.rarityColor)}"><div class="requirement-art">${art({ ...item, imageUrl: item.cardImageUrl, name: item.cardName, rarityColor: item.rarityColor })}</div><div><span class="eyebrow">${esc(item.mutationName || item.rarityName)}</span><strong>${esc(item.cardName)}</strong><small>${item.ready ? "Готово до списання" : "Потрібні дублікати"}</small></div><b>${compact(item.owned)}/${compact(item.quantity)}</b></article>`).join(""),
+          roadmap = rebirth.tiers.map((tier) => `<div class="roadmap-step ${tier.tier <= rebirth.completedTier ? "done" : tier.tier === next.tier ? "current" : ""}"><span>R${tier.tier}</span><div><strong>${esc(tier.name)}</strong><small>${formatLuck(tier.luckMultiplier)} luck · ${formatLuck(tier.incomeMultiplier)} income</small></div></div>`).join("");
+        return `${pageHead("Постійна прогресія", "Ребірти", "Обмінюй гроші та дублікати на постійні множники.")}<div class="rebirth-layout"><section class="panel rebirth-main" style="--rebirth:${esc(next.accent)}"><div class="rebirth-title"><div><span class="rebirth-number">R${next.tier}</span><div><span class="eyebrow">НАСТУПНИЙ РЕБІРТ</span><h2>${esc(next.name)}</h2><p>${esc(next.description)}</p></div></div><div class="rebirth-rewards"><span><small>Постійний luck</small><b>${formatLuck(next.luckMultiplier)}</b></span><span><small>Постійний дохід</small><b>${formatLuck(next.incomeMultiplier)}</b></span></div></div><div class="coin-requirement"><div><span>Rift Credits</span><b>${money(p.coins)} / ${money(next.requiredCoins)}</b></div><div class="progress-track"><i style="width:${coinProgress}%"></i></div></div><div class="section-head"><div><h2>Картки для обміну</h2><p>Буде списана тільки вказана кількість. Решта колекції, кубики й рівні залишаться.</p></div></div><div class="requirement-grid">${requirements}</div><div class="rebirth-warning"><span>!</span><p><b>Після ребірту баланс стане $0.</b> Активні зілля, рівень, кубики та інші картки не скидаються.</p></div><button class="rebirth-button" onclick="confirmRebirth()" ${next.ready ? "" : "disabled"}>${next.ready ? `Виконати R${next.tier}` : "Умови ще не виконані"}</button></section><aside class="rebirth-side"><section class="panel permanent-card"><span class="eyebrow">ТВОЇ ПОСТІЙНІ БОНУСИ</span><div><strong>${formatLuck(rebirth.luckMultiplier)}</strong><small>Luck</small></div><div><strong>${formatLuck(rebirth.incomeMultiplier)}</strong><small>Income</small></div><p>Ці множники діють на всі кубики та пасивний заробіток.</p></section><section class="panel roadmap"><span class="eyebrow">ШЛЯХ РЕБІРТІВ</span>${roadmap}</section></aside></div>`;
+      }
+      function confirmRebirth() {
+        const next = state.game.rebirth.next;
+        if (!next || !next.ready) return;
+        openModal(`<div class="modal-head"><div><h2>Підтвердити R${next.tier}</h2><p>Цю дію не можна скасувати.</p></div><button class="close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="confirm-rebirth"><span>↟</span><h3>${esc(next.name)}</h3><p>Баланс ${money(state.game.player.coins)} буде скинуто до $0, а потрібні картки — списано.</p><div><b>${formatLuck(next.luckMultiplier)} luck</b><b>${formatLuck(next.incomeMultiplier)} income</b></div></div><div class="modal-actions"><button class="ghost" onclick="closeModal()">Скасувати</button><button class="primary" onclick="doRebirth(this)">Так, виконати ребірт</button></div></div>`);
+      }
+      async function doRebirth(button) {
+        button.disabled = true; button.textContent = "Виконуємо…";
+        try {
+          const data = await api("/api/rebirth", { method: "POST" });
+          state.game = data.snapshot; renderChrome(); render();
+          const done = data.completed;
+          openModal(`<div class="rebirth-complete"><span>↟</span><small>REBIRTH COMPLETE</small><h2>R${done.tier} · ${esc(done.name)}</h2><p>Постійні бонуси вже застосовані до luck та доходу.</p><div><b>${formatLuck(done.luckMultiplier)} luck</b><b>${formatLuck(done.incomeMultiplier)} income</b></div><button class="primary" onclick="closeModal()">Продовжити</button></div>`);
+        } catch (e) {
+          button.disabled = false; button.textContent = "Так, виконати ребірт"; toast(e.message, "error");
+        }
+      }
       function renderDice() {
         const g = state.game,
           p = g.player;
         const cards = g.dice
+          .filter((die) => die.owned)
           .map((die) => {
             const levelProgress = die.owned
               ? Math.min(100, (die.level / die.maxLevel) * 100)
@@ -2968,7 +3404,7 @@
             return `<article class="panel dice-card ${die.isEquipped ? "equipped" : ""}" style="--face:${esc(die.faceColor)}"><div class="dice-visual">${diceMarkup(die, true)}</div><div class="dice-card-body"><div class="dice-card-head"><div><span class="eyebrow">${die.isEquipped ? "Обраний кубик" : die.owned ? "Відкрито" : `Рівень ${die.requiredLevel}`}</span><h3>${esc(die.name)}</h3></div><span class="dice-level">${die.owned ? `LVL ${die.level}` : "LOCKED"}</span></div><p>${esc(die.description)}</p><div class="dice-stats"><div><span>Luck зараз</span><b>${formatLuck(die.currentLuck)}</b></div><div><span>Базовий luck</span><b>${formatLuck(die.baseLuck)}</b></div></div>${die.owned ? `<span class="dice-progress-label">Прогрес кубика · ${die.level}/${die.maxLevel}</span><div class="dice-progress"><i style="width:${levelProgress}%"></i></div>` : `<span class="dice-progress-label">Вартість · ${money(die.unlockCost)}</span><div class="dice-progress"><i style="width:${Math.min(100, (p.level / die.requiredLevel) * 100)}%"></i></div>`}${actions}</div></article>`;
           })
           .join("");
-        return `${pageHead("Прогресія", "Кубики та прокачка", `Баланс ${money(p.coins)} · поточний luck ${formatLuck(p.luck)}`, '<button class="primary" onclick="go(\'roll\')">До крутки</button>')}<div class="dice-grid">${cards}</div>`;
+        return `${pageHead("Прогресія", "Мої кубики", `Баланс ${money(p.coins)} · загальний luck ${formatLuck(p.luck)}`, '<button class="ghost" onclick="state.shopTab=\'dice\';go(\'shop\')">Купити кубик</button><button class="primary" onclick="go(\'roll\')">До ролу</button>')}<div class="dice-grid">${cards}</div>`;
       }
       async function diceAction(action, id) {
         try {
@@ -3075,7 +3511,7 @@
               .filter((x) => x.pageIndex === state.profilePage)
               .map((x) => [x.slotIndex, x]),
           );
-        const profileCard = `<aside class="panel profile-card" style="--accent:${esc(p.accent)}"><div class="profile-banner"></div><div class="profile-avatar">${avatarMarkup(p.avatarUrl, p.displayName)}</div><div class="profile-info"><h2>${esc(p.displayName)}</h2><span class="profile-handle">@${esc(p.handle)}</span><div class="profile-badges"><span title="Rift Roll">R</span>${p.level >= 10 ? '<span title="Рівень 10+">X</span>' : ""}${p.uniqueOwned >= 5 ? '<span title="Колекціонер">◆</span>' : ""}</div><div class="profile-about"><h3>ПРО МЕНЕ</h3><p>${esc(p.bio || "Ще не залишив опис профілю.")}</p></div><div class="profile-stats"><div><strong>${p.level}</strong><span>Рівень</span></div><div><strong>${compact(p.rolls)}</strong><span>Ролів</span></div><div><strong>${p.uniqueOwned}</strong><span>Карток</span></div></div><div class="profile-joined"><span>ОБРАНИЙ КУБИК</span><b>${esc(p.equippedDice?.name || "Origin Cube")} · ${formatLuck(p.equippedDice?.currentLuck || 1)}</b></div><div class="profile-joined"><span>У RIFT ROLL З</span><b>${dateText(p.joinedAt)}</b></div>${data.isOwner ? `<div class="profile-actions"><button class="primary" onclick="openProfileEdit()">Редагувати профіль</button><button class="ghost" onclick="logout()">Вийти з акаунта</button></div>` : ""}</div></aside>`;
+        const profileCard = `<aside class="panel profile-card" style="--accent:${esc(p.accent)}"><div class="profile-banner"></div><div class="profile-avatar">${avatarMarkup(p.avatarUrl, p.displayName)}</div><div class="profile-info"><h2>${esc(p.displayName)}</h2><span class="profile-handle">@${esc(p.handle)}</span><div class="profile-badges"><span title="Rift Roll">R</span>${p.level >= 10 ? '<span title="Рівень 10+">X</span>' : ""}${p.uniqueOwned >= 5 ? '<span title="Колекціонер">◆</span>' : ""}</div><div class="profile-about"><h3>ПРО МЕНЕ</h3><p>${esc(p.bio || "Ще не залишив опис профілю.")}</p></div><div class="profile-stats"><div><strong>${p.level}</strong><span>Рівень</span></div><div><strong>${compact(p.rolls)}</strong><span>Ролів</span></div><div><strong>${p.uniqueOwned}</strong><span>Карток</span></div><div><strong>R${p.rebirths || 0}</strong><span>Ребірт</span></div></div><div class="profile-joined"><span>ОБРАНИЙ КУБИК</span><b>${esc(p.equippedDice?.name || "Origin Cube")} · ${formatLuck(p.equippedDice?.currentLuck || 1)}</b></div><div class="profile-joined"><span>У RIFT ROLL З</span><b>${dateText(p.joinedAt)}</b></div>${data.isOwner ? `<div class="profile-actions"><button class="primary" onclick="openProfileEdit()">Редагувати профіль</button><button class="ghost" onclick="logout()">Вийти з акаунта</button></div>` : ""}</div></aside>`;
         const showcase = `<section class="panel showcase"><div class="showcase-head"><div><span class="eyebrow">32 місця · 4 сторінки</span><h2>Вибрані картки</h2><p>${data.isOwner ? "Покажи іншим найкращі знахідки зі свого інвентарю." : `${p.ownedVariants} варіантів у колекції.`}</p></div>${data.isOwner ? `<button class="${state.editingShowcase ? "primary" : "ghost"}" onclick="state.editingShowcase=!state.editingShowcase;renderProfile()">${state.editingShowcase ? "Готово" : "Змінити вітрину"}</button>` : ""}</div><div class="showcase-tabs">${[0, 1, 2, 3].map((i) => `<button class="${state.profilePage === i ? "active" : ""}" onclick="state.profilePage=${i};renderProfile()">Вітрина ${i + 1} · ${data.showcase.filter((x) => x.pageIndex === i).length}/8</button>`).join("")}</div><div class="showcase-grid">${Array.from({ length: 8 }, (_, i) => showcaseSlot(slots.get(i), i, data.isOwner)).join("")}</div><footer class="showcase-footer"><span><b>${p.ownedVariants}</b> варіантів</span><span><b>${money(p.totalIncomePerSecond)}/s</b> дохід</span><span><b>${p.uniqueOwned}/${p.totalCards}</b> Index</span></footer></section>`;
         const actions = `${!data.isOwner ? '<button class="ghost" onclick="openOwnProfile()">Мій профіль</button>' : ""}<button class="ghost" onclick="openPlayers()">Знайти гравця</button><button class="ghost" onclick="shareProfile()">Поділитися</button>`;
         $("main").innerHTML =
@@ -3287,6 +3723,7 @@
             mutations: "Мутації",
             events: "Івенти",
             potions: "Зілля",
+            rebirths: "Ребірти",
           };
         return `${pageHead("Керування без коду", "Admin Studio", "Зміни одразу зберігаються в Aiven PostgreSQL.", `<button class="primary" onclick="openAdminForm('${kind}')">Додати</button>`)}<div class="admin-tabs">${Object.entries(
           labels,
@@ -3316,7 +3753,9 @@
         if (kind === "events")
           meta = `${item.isLive ? "Активний" : item.status} · ${item.startAt ? dateText(item.startAt) : "ручний"}`;
         if (kind === "potions")
-          meta = `${item.effectType} ${item.multiplier}× · ${Math.round(item.durationSeconds / 60)} хв`;
+          meta = `${item.effectType} ${item.multiplier}× · ${money(item.shopPrice)} · stock ${item.stockRemaining}/${item.stockLimit || "∞"}`;
+        if (kind === "rebirths")
+          meta = `R${item.tier} · ${money(item.requiredCoins)} · ${item.requirements.length} вимог · ${item.luckMultiplier}× luck`;
         return `<article class="admin-row"><div class="admin-row-main"><i class="admin-swatch" style="--swatch:${esc(color)}"></i><span><strong>${esc(item.name)}</strong><small>${esc(meta)}</small></span></div><div class="admin-row-actions">${kind === "events" ? `<button class="small-button" onclick="toggleAdminEvent(${item.id})">${item.isLive ? "Стоп" : "Запустити"}</button>` : ""}<button class="small-button" onclick="openAdminForm('${kind}',${item.id})">Редагувати</button><button class="danger" onclick="deleteAdmin('${kind}',${item.id})">Видалити</button></div></article>`;
       }
       function eventOptions(selected) {
@@ -3330,8 +3769,17 @@
         if (kind === "mutations") body = mutationForm(item);
         if (kind === "events") body = eventForm(item);
         if (kind === "potions") body = potionForm(item);
+        if (kind === "rebirths") body = rebirthForm(item);
+        const nouns = {
+          cards: "картку",
+          dice: "кубик",
+          mutations: "мутацію",
+          events: "івент",
+          potions: "зілля",
+          rebirths: "ребірт",
+        };
         openModal(
-          `<div class="modal-head"><div><h2>${item ? "Редагувати" : "Додати"} ${kind === "cards" ? "картку" : kind === "dice" ? "кубик" : kind === "mutations" ? "мутацію" : kind === "events" ? "івент" : "зілля"}</h2><p>Збереження одразу змінить ігрові дані.</p></div><button class="close" onclick="closeModal()">×</button></div><form id="admin-form" class="modal-body">${body}<div class="modal-actions"><button type="button" class="ghost" onclick="closeModal()">Скасувати</button><button class="primary">Зберегти</button></div></form>`,
+          `<div class="modal-head"><div><h2>${item ? "Редагувати" : "Додати"} ${nouns[kind]}</h2><p>Заповни поля нижче. Помилки з’являться прямо у формі.</p></div><button class="close" onclick="closeModal()">×</button></div><form id="admin-form" class="modal-body">${body}<p id="admin-form-error" class="form-error"></p><div class="modal-actions"><button type="button" class="ghost" onclick="closeModal()">Скасувати</button><button id="admin-save" class="primary">Зберегти</button></div></form>`,
           "wide",
         );
         $("admin-form").onsubmit = (e) => saveAdmin(e, kind, id);
@@ -3390,12 +3838,34 @@
         return `<div class="form-stack"><label class="field"><span>Назва</span><input name="name" value="${esc(x.name || "")}" required></label><label class="field"><span>Опис</span><textarea name="description">${esc(x.description || "")}</textarea></label><div class="form-row"><label class="field"><span>Колір</span><input name="accent" type="color" value="${esc(x.accent || "#f0b232")}"></label><label class="field"><span>Статус</span><select name="status">${["scheduled", "active", "paused"].map((v) => `<option ${x.status === v ? "selected" : ""}>${v}</option>`).join("")}</select></label></div><div class="form-row"><label class="field"><span>Початок</span><input name="start_at" type="datetime-local" value="${localDate(x.startAt)}"></label><label class="field"><span>Кінець</span><input name="end_at" type="datetime-local" value="${localDate(x.endAt)}"></label></div></div>`;
       }
       function potionForm(x = {}) {
-        return `<div class="form-stack"><label class="field"><span>Назва</span><input name="name" value="${esc(x.name || "")}" required></label><label class="field"><span>Опис</span><textarea name="description">${esc(x.description || "")}</textarea></label><div class="form-row"><label class="field"><span>Тип ефекту</span><select name="effect_type"><option value="luck" ${x.effectType === "luck" ? "selected" : ""}>luck</option><option value="speed" ${x.effectType === "speed" ? "selected" : ""}>speed</option></select></label><label class="field"><span>Множник</span><input name="multiplier" type="number" step="0.01" min="1.01" value="${x.multiplier ?? 1.5}" required></label></div><div class="form-row"><label class="field"><span>Тривалість, секунд</span><input name="duration_seconds" type="number" min="5" value="${x.durationSeconds ?? 600}" required></label><label class="field"><span>Стартова кількість</span><input name="starter_quantity" type="number" min="0" value="${x.starterQuantity ?? 0}" required></label></div><label class="field"><span>Колір</span><input name="color" type="color" value="${esc(x.color || "#5865f2")}"></label><label class="check-option"><input name="is_active" type="checkbox" ${checked(x.isActive ?? true)}> Зілля активне</label></div>`;
+        return `<div class="form-stack"><div class="admin-form-section"><span class="field-label">Ефект зілля</span><label class="field"><span>Назва</span><input name="name" value="${esc(x.name || "")}" required></label><label class="field"><span>Опис</span><textarea name="description">${esc(x.description || "")}</textarea></label><div class="form-row"><label class="field"><span>Тип ефекту</span><select name="effect_type"><option value="luck" ${x.effectType === "luck" ? "selected" : ""}>luck</option><option value="speed" ${x.effectType === "speed" ? "selected" : ""}>speed</option></select></label><label class="field"><span>Множник</span><input name="multiplier" type="number" step="0.01" min="1.01" value="${x.multiplier ?? 1.5}" required></label></div><div class="form-row"><label class="field"><span>Тривалість, секунд</span><input name="duration_seconds" type="number" min="5" value="${x.durationSeconds ?? 600}" required></label><label class="field"><span>Стартова кількість</span><input name="starter_quantity" type="number" min="0" value="${x.starterQuantity ?? 0}" required></label></div><label class="field"><span>Колір</span><input name="color" type="color" value="${esc(x.color || "#5865f2")}"></label></div><div class="admin-form-section"><span class="field-label">Продаж у магазині</span><div class="form-row"><label class="field"><span>Ціна пакета</span><input name="shop_price" type="number" min="0" value="${x.shopPrice ?? 1000}" required></label><label class="field"><span>Зіль у пакеті</span><input name="pack_size" type="number" min="1" value="${x.packSize ?? 1}" required></label></div><div class="form-row"><label class="field"><span>Запас на restock (0 = ∞)</span><input name="stock_limit" type="number" min="0" value="${x.stockLimit ?? 10}" required></label><label class="field"><span>Restock, секунд</span><input name="restock_seconds" type="number" min="5" value="${x.restockSeconds ?? 300}" required></label></div><label class="field"><span>Потрібно ребіртів</span><input name="required_rebirths" type="number" min="0" value="${x.requiredRebirths ?? 0}" required></label></div><label class="check-option"><input name="is_active" type="checkbox" ${checked(x.isActive ?? true)}> Зілля активне</label><label class="check-option"><input name="shop_active" type="checkbox" ${checked(x.shopActive ?? true)}> Показувати в магазині</label></div>`;
+      }
+      function rebirthRequirementRow(item = {}) {
+        const cards = state.admin.cards.map((card) => `<option value="${card.id}" ${Number(item.cardId) === card.id ? "selected" : ""}>${esc(card.name)} · ${esc(card.rarityName)}</option>`).join(""),
+          mutations = state.admin.mutations.map((mutation) => `<option value="${mutation.id}" ${Number(item.mutationId) === mutation.id ? "selected" : ""}>${esc(mutation.name)}</option>`).join("");
+        return `<div class="requirement-editor"><label class="field"><span>Картка</span><select name="requirement_card" required><option value="">Обери картку</option>${cards}</select></label><label class="field"><span>Мутація</span><select name="requirement_mutation"><option value="">Будь-яка</option>${mutations}</select></label><label class="field"><span>Кількість</span><input name="requirement_quantity" type="number" min="1" value="${item.quantity ?? 1}" required></label><button type="button" class="danger requirement-remove" onclick="removeRebirthRequirement(this)">×</button></div>`;
+      }
+      function addRebirthRequirement(item = {}) {
+        $("rebirth-requirements").insertAdjacentHTML("beforeend", rebirthRequirementRow(item));
+      }
+      function removeRebirthRequirement(button) {
+        const rows = document.querySelectorAll(".requirement-editor");
+        if (rows.length <= 1) { toast("Для ребірту потрібна хоча б одна картка.", "error"); return; }
+        button.closest(".requirement-editor").remove();
+      }
+      function rebirthForm(x = {}) {
+        const requirements = x.requirements?.length ? x.requirements : [{ quantity: 1 }];
+        return `<div class="form-stack"><div class="form-row"><label class="field"><span>Номер ребірту</span><input name="tier" type="number" min="1" value="${x.tier ?? (state.admin.rebirths.length + 1)}" required></label><label class="field"><span>Назва</span><input name="name" value="${esc(x.name || "")}" required></label></div><label class="field"><span>Опис</span><textarea name="description" maxlength="240">${esc(x.description || "")}</textarea></label><div class="form-row"><label class="field"><span>Потрібно грошей</span><input name="required_coins" type="number" min="0" value="${x.requiredCoins ?? 50000}" required></label><label class="field"><span>Колір</span><input name="accent" type="color" value="${esc(x.accent || "#5865f2")}"></label></div><div class="form-row"><label class="field"><span>Постійний Luck ×</span><input name="luck_multiplier" type="number" min="1.01" max="1000" step="0.01" value="${x.luckMultiplier ?? 1.2}" required></label><label class="field"><span>Постійний дохід ×</span><input name="income_multiplier" type="number" min="1.01" max="1000" step="0.01" value="${x.incomeMultiplier ?? 1.2}" required></label></div><div class="requirement-editor-head"><div><span class="field-label">Картки для списання</span><small>«Будь-яка» мутація рахує всі варіанти цієї картки.</small></div><button type="button" class="small-button" onclick="addRebirthRequirement()">+ Додати вимогу</button></div><div id="rebirth-requirements" class="requirement-editor-list">${requirements.map((item) => rebirthRequirementRow(item)).join("")}</div><label class="check-option"><input name="is_active" type="checkbox" ${checked(x.isActive ?? true)}> Ребірт активний</label></div>`;
       }
       async function saveAdmin(event, kind, id) {
         event.preventDefault();
         const form = new FormData(event.target),
-          data = Object.fromEntries(form);
+          data = Object.fromEntries(form),
+          submit = $("admin-save"),
+          error = $("admin-form-error");
+        error.textContent = "";
+        submit.disabled = true;
+        submit.textContent = "Зберігаємо…";
         if (kind === "cards") {
           data.rarity_tier = Number(data.rarity_tier);
           data.base_weight = Number(data.base_weight);
@@ -3435,7 +3905,31 @@
           data.multiplier = Number(data.multiplier);
           data.duration_seconds = Number(data.duration_seconds);
           data.starter_quantity = Number(data.starter_quantity);
+          data.shop_price = Number(data.shop_price);
+          data.pack_size = Number(data.pack_size);
+          data.stock_limit = Number(data.stock_limit);
+          data.restock_seconds = Number(data.restock_seconds);
+          data.required_rebirths = Number(data.required_rebirths);
           data.is_active = form.has("is_active");
+          data.shop_active = form.has("shop_active");
+        }
+        if (kind === "rebirths") {
+          data.tier = Number(data.tier);
+          data.required_coins = Number(data.required_coins);
+          data.luck_multiplier = Number(data.luck_multiplier);
+          data.income_multiplier = Number(data.income_multiplier);
+          data.is_active = form.has("is_active");
+          const cards = form.getAll("requirement_card"),
+            mutations = form.getAll("requirement_mutation"),
+            quantities = form.getAll("requirement_quantity");
+          data.requirements = cards.map((card, index) => ({
+            card_id: Number(card),
+            mutation_id: mutations[index] ? Number(mutations[index]) : null,
+            quantity: Number(quantities[index]),
+          }));
+          delete data.requirement_card;
+          delete data.requirement_mutation;
+          delete data.requirement_quantity;
         }
         try {
           state.admin = await api(`/api/admin/${kind}${id ? "/" + id : ""}`, {
@@ -3447,7 +3941,12 @@
           render();
           toast("Зміни збережено.");
         } catch (e) {
+          error.textContent = e.message;
+          error.scrollIntoView({ behavior: "smooth", block: "center" });
           toast(e.message, "error");
+        } finally {
+          submit.disabled = false;
+          submit.textContent = "Зберегти";
         }
       }
       async function deleteAdmin(kind, id) {
@@ -3507,7 +4006,22 @@
       setInterval(() => {
         state.now = Date.now();
         renderHud();
-        if (state.view === "potions" || state.view === "events") render();
+        const restockDue =
+          state.view === "shop" &&
+          state.shopTab === "potions" &&
+          state.game?.shop?.potions?.some(
+            (offer) => offer.restockAt && new Date(offer.restockAt).getTime() <= state.now,
+          );
+        if (restockDue && !state.shopRefreshing) {
+          state.shopRefreshing = true;
+          loadGame().then(render).finally(() => (state.shopRefreshing = false));
+          return;
+        }
+        if (
+          state.view === "events" ||
+          state.view === "rebirth" ||
+          (state.view === "shop" && state.shopTab === "potions")
+        ) render();
       }, 1000);
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") closeModal();
