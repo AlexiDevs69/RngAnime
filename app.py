@@ -387,6 +387,30 @@ def clean_color(value: str, fallback: str) -> str:
     return value if COLOR_RE.fullmatch(value.strip()) else fallback
 
 
+def required_admin_text(value: str, label: str) -> str:
+    cleaned = value.strip()
+    if not cleaned:
+        raise HTTPException(status_code=400, detail=f"{label} не може бути порожньою.")
+    return cleaned
+
+
+def validate_event_link(
+    db: Session,
+    *,
+    event_only: bool,
+    event_id: int | None,
+    item_label: str,
+) -> int | None:
+    if event_only and event_id is None:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Для event-only {item_label} потрібно вибрати івент.",
+        )
+    if event_id is not None and not db.get(GameEvent, event_id):
+        raise HTTPException(status_code=400, detail="Вибраний івент не існує.")
+    return event_id if event_only else None
+
+
 def seed_dice(db: Session) -> None:
     if db.scalar(select(func.count(Dice.id))):
         return
@@ -2301,9 +2325,17 @@ def admin_payload(db: Session) -> dict[str, Any]:
     }
 
 
+def finalized_admin_payload(db: Session) -> dict[str, Any]:
+    payload = admin_payload(db)
+    # Stock refreshes happen while the payload is built. Committing here keeps
+    # the shop and Admin Studio in sync across workers and page reloads.
+    db.commit()
+    return payload
+
+
 @app.get("/api/admin")
 def get_admin(_: AdminUser, db: DB):
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 @app.post("/api/admin/upload")
@@ -2318,16 +2350,14 @@ def admin_upload_image(
 
 
 def apply_card(db: Session, card: Card, payload: CardInput) -> None:
-    name = payload.name.strip()
-    if not name:
-        raise HTTPException(status_code=400, detail="Назва картки не може бути порожньою.")
-    if payload.event_only and payload.event_id is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Для event-only картки потрібно вибрати івент.",
-        )
-    if payload.event_id is not None and not db.get(GameEvent, payload.event_id):
-        raise HTTPException(status_code=400, detail="Вибраний івент не існує.")
+    name = required_admin_text(payload.name, "Назва картки")
+    rarity_name = required_admin_text(payload.rarity_name, "Назва рідкості")
+    event_id = validate_event_link(
+        db,
+        event_only=payload.event_only,
+        event_id=payload.event_id,
+        item_label="картки",
+    )
     mutation_ids = list(dict.fromkeys(payload.mutation_ids))
     mutations = (
         list(db.scalars(select(Mutation).where(Mutation.id.in_(mutation_ids))).all())
@@ -2339,13 +2369,13 @@ def apply_card(db: Session, card: Card, payload: CardInput) -> None:
     card.name = name
     card.subtitle = payload.subtitle.strip()
     card.image_url = payload.image_url.strip()
-    card.rarity_name = payload.rarity_name.strip()
+    card.rarity_name = rarity_name
     card.rarity_tier = payload.rarity_tier
     card.rarity_color = clean_color(payload.rarity_color, "#949ba4")
     card.base_weight = payload.base_weight
     card.income_per_second = payload.income_per_second
     card.event_only = payload.event_only
-    card.event_id = payload.event_id if payload.event_only else None
+    card.event_id = event_id
     card.is_active = payload.is_active
     card.mutations = mutations
 
@@ -2363,7 +2393,7 @@ def create_card(payload: CardInput, _: AdminUser, db: DB):
             status_code=409,
             detail="Картку не вдалося створити. Перевір івент і вибрані мутації.",
         )
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 @app.put("/api/admin/cards/{item_id}")
@@ -2380,7 +2410,7 @@ def update_card(item_id: int, payload: CardInput, _: AdminUser, db: DB):
             status_code=409,
             detail="Картку не вдалося зберегти. Перевір івент і мутації.",
         )
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 @app.delete("/api/admin/cards/{item_id}")
@@ -2406,30 +2436,35 @@ def delete_card(item_id: int, _: AdminUser, db: DB):
         )
     db.delete(card)
     db.commit()
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
-def apply_mutation(mutation: Mutation, payload: MutationInput) -> None:
-    mutation.name = payload.name.strip()
+def apply_mutation(db: Session, mutation: Mutation, payload: MutationInput) -> None:
+    mutation.name = required_admin_text(payload.name, "Назва мутації")
     mutation.color = clean_color(payload.color, "#ffffff")
     mutation.chance = normalize_chance(payload.chance)
     mutation.income_multiplier = payload.income_multiplier
     mutation.event_only = payload.event_only
-    mutation.event_id = payload.event_id if payload.event_only else None
+    mutation.event_id = validate_event_link(
+        db,
+        event_only=payload.event_only,
+        event_id=payload.event_id,
+        item_label="мутації",
+    )
     mutation.is_active = payload.is_active
 
 
 @app.post("/api/admin/mutations")
 def create_mutation(payload: MutationInput, _: AdminUser, db: DB):
     mutation = Mutation(name=payload.name, chance=normalize_chance(payload.chance))
-    apply_mutation(mutation, payload)
+    apply_mutation(db, mutation, payload)
     db.add(mutation)
     try:
         db.commit()
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="Мутація з такою назвою вже існує.")
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 @app.put("/api/admin/mutations/{item_id}")
@@ -2437,13 +2472,13 @@ def update_mutation(item_id: int, payload: MutationInput, _: AdminUser, db: DB):
     mutation = db.get(Mutation, item_id)
     if not mutation:
         raise HTTPException(status_code=404, detail="Мутацію не знайдено.")
-    apply_mutation(mutation, payload)
+    apply_mutation(db, mutation, payload)
     try:
         db.commit()
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="Мутація з такою назвою вже існує.")
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 @app.delete("/api/admin/mutations/{item_id}")
@@ -2451,9 +2486,26 @@ def delete_mutation(item_id: int, _: AdminUser, db: DB):
     mutation = db.get(Mutation, item_id)
     if not mutation:
         raise HTTPException(status_code=404, detail="Мутацію не знайдено.")
+    requirement_count = db.scalar(
+        select(func.count(RebirthRequirement.id)).where(
+            RebirthRequirement.mutation_id == item_id
+        )
+    ) or 0
+    if requirement_count:
+        raise HTTPException(
+            status_code=409,
+            detail="Мутація використовується у вимогах ребірту. Спочатку зміни ці вимоги.",
+        )
     db.delete(mutation)
-    db.commit()
-    return admin_payload(db)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Мутація вже використовується. Вимкни її замість видалення.",
+        )
+    return finalized_admin_payload(db)
 
 
 def apply_event(event: GameEvent, payload: EventInput) -> None:
@@ -2461,7 +2513,7 @@ def apply_event(event: GameEvent, payload: EventInput) -> None:
         raise HTTPException(status_code=400, detail="Статус має бути scheduled, active або paused.")
     if payload.start_at and payload.end_at and payload.end_at <= payload.start_at:
         raise HTTPException(status_code=400, detail="Кінець івенту має бути після початку.")
-    event.name = payload.name.strip()
+    event.name = required_admin_text(payload.name, "Назва івенту")
     event.description = payload.description.strip()
     event.accent = clean_color(payload.accent, "#f0b232")
     event.start_at = payload.start_at
@@ -2475,7 +2527,7 @@ def create_event(payload: EventInput, _: AdminUser, db: DB):
     apply_event(event, payload)
     db.add(event)
     db.commit()
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 @app.put("/api/admin/events/{item_id}")
@@ -2485,7 +2537,7 @@ def update_event(item_id: int, payload: EventInput, _: AdminUser, db: DB):
         raise HTTPException(status_code=404, detail="Івент не знайдено.")
     apply_event(event, payload)
     db.commit()
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 @app.post("/api/admin/events/{item_id}/toggle")
@@ -2495,7 +2547,7 @@ def toggle_event(item_id: int, _: AdminUser, db: DB):
         raise HTTPException(status_code=404, detail="Івент не знайдено.")
     event.status = "paused" if event_is_live(event) else "active"
     db.commit()
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 @app.delete("/api/admin/events/{item_id}")
@@ -2511,13 +2563,13 @@ def delete_event(item_id: int, _: AdminUser, db: DB):
         mutation.event_only = False
     db.delete(event)
     db.commit()
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 def apply_potion(potion: Potion, payload: PotionInput) -> None:
     if payload.effect_type not in {"luck", "speed"}:
         raise HTTPException(status_code=400, detail="Тип зілля має бути luck або speed.")
-    potion.name = payload.name.strip()
+    potion.name = required_admin_text(payload.name, "Назва зілля")
     potion.description = payload.description.strip()
     potion.effect_type = payload.effect_type
     potion.multiplier = payload.multiplier
@@ -2564,7 +2616,7 @@ def create_potion(payload: PotionInput, _: AdminUser, db: DB):
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="Зілля з такою назвою вже існує.")
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 @app.put("/api/admin/potions/{item_id}")
@@ -2583,7 +2635,7 @@ def update_potion(item_id: int, payload: PotionInput, _: AdminUser, db: DB):
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="Зілля з такою назвою вже існує.")
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 @app.delete("/api/admin/potions/{item_id}")
@@ -2603,7 +2655,7 @@ def delete_potion(item_id: int, _: AdminUser, db: DB):
             status_code=409,
             detail="Це зілля вже є в інвентарях. Вимкни його замість видалення.",
         )
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 def apply_rebirth_tier(
@@ -2668,7 +2720,7 @@ def create_rebirth_tier(payload: RebirthInput, _: AdminUser, db: DB):
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="Ребірт із таким номером уже існує.")
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 @app.put("/api/admin/rebirths/{item_id}")
@@ -2687,7 +2739,7 @@ def update_rebirth_tier(
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="Ребірт із таким номером уже існує.")
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 @app.delete("/api/admin/rebirths/{item_id}")
@@ -2707,11 +2759,11 @@ def delete_rebirth_tier(item_id: int, _: AdminUser, db: DB):
         )
     db.delete(tier)
     db.commit()
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 def apply_dice(db: Session, die: Dice, payload: DiceInput) -> None:
-    die.name = payload.name.strip()
+    die.name = required_admin_text(payload.name, "Назва кубика")
     die.description = payload.description.strip()
     die.face_color = clean_color(payload.face_color, "#f2f3f5")
     die.pip_color = clean_color(payload.pip_color, "#16171a")
@@ -2740,7 +2792,7 @@ def create_dice(payload: DiceInput, _: AdminUser, db: DB):
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="Кубик із такою назвою вже існує.")
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 @app.put("/api/admin/dice/{item_id}")
@@ -2756,7 +2808,7 @@ def update_dice(item_id: int, payload: DiceInput, _: AdminUser, db: DB):
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="Кубик із такою назвою вже існує.")
-    return admin_payload(db)
+    return finalized_admin_payload(db)
 
 
 @app.delete("/api/admin/dice/{item_id}")
@@ -2772,4 +2824,4 @@ def delete_dice(item_id: int, _: AdminUser, db: DB):
         )
     db.delete(die)
     db.commit()
-    return admin_payload(db)
+    return finalized_admin_payload(db)
